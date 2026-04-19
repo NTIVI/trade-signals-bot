@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TradeBot Mini App</title>
+    <title>Trade Signals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div id="app">
         <header>
+            <h1>TRADE</h1>
+            <p id="status-text">Выберите актив для начала анализа</p>
             <select id="asset-select">
-                <option value="" disabled selected>Выберите актив</option>
+                <option value="" disabled selected>ВЫБРАТЬ АКТИВ</option>
                 <option value="Bitcoin">Bitcoin (BTC)</option>
                 <option value="Ethereum">Ethereum (ETH)</option>
                 <option value="Litecoin">Litecoin (LTC)</option>
@@ -23,18 +27,16 @@
         </header>
 
         <main>
-            <div id="status-container">
-                <p id="status-text">Выберите актив для начала работы</p>
-                <div id="waiting-screen" class="hidden">
-                    <p class="waiting-text">Ожидание сигнала</p>
+            <div id="waiting-screen" class="hidden">
+                <div class="waiting-container">
+                    <span class="loader"></span>
+                    <p class="waiting-text">АНАЛИЗ РЫНКА...</p>
                 </div>
             </div>
 
-            <div id="signal-container" class="hidden">
-                <div class="signal-card">
-                    <h2 id="signal-direction">--</h2>
-                    <p id="signal-details">--</p>
-                </div>
+            <div id="signal-container" class="signal-card hidden">
+                <div id="signal-direction"></div>
+                <div id="signal-details"></div>
             </div>
         </main>
     </div>
