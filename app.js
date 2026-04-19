@@ -52,16 +52,16 @@ function startAnalysis() {
 function analyzeMarket() {
     if (isShowingSignal) return;
 
-    // Simulate analysis with rare signals (10% chance)
-    const isSignalTime = Math.random() < 0.10; 
+    // Simulate analysis with rare signals (7% chance)
+    const isSignalTime = Math.random() < 0.07; 
     
     if (!isSignalTime) return;
 
-    // Determine confidence level between 60 and 99
-    const confidence = Math.floor(Math.random() * 40) + 60;
+    // Determine confidence level between 95 and 99
+    const confidence = Math.floor(Math.random() * 5) + 95;
 
-    // Show signal only if confidence >= 75%
-    if (confidence >= 75) {
+    // Show signal only if confidence >= 95%
+    if (confidence >= 95) {
         const direction = Math.random() > 0.5 ? 'UP' : 'DOWN';
         showSignal(direction, confidence);
     }
@@ -83,11 +83,15 @@ function showSignal(direction, confidence) {
 
     if (direction === 'UP') {
         signalText = `🔼 ВВЕРХ на 1 минуту — ${confidence}%`;
+        signalContainer.classList.add('signal-up');
+        signalContainer.classList.remove('signal-down');
         signalDirection.className = 'signal-up';
         signalDirection.innerText = 'ВВЕРХ';
         signalDetails.innerText = `🔼 на 1 минуту — ${confidence}%`;
     } else {
         signalText = `🔽 ВНИЗ на 1 минуту — ${confidence}%`;
+        signalContainer.classList.add('signal-down');
+        signalContainer.classList.remove('signal-up');
         signalDirection.className = 'signal-down';
         signalDirection.innerText = 'ВНИЗ';
         signalDetails.innerText = `🔽 на 1 минуту — ${confidence}%`;
@@ -99,6 +103,7 @@ function showSignal(direction, confidence) {
     // After 15 seconds, hide signal and go back to waiting
     setTimeout(() => {
         signalContainer.classList.add('hidden');
+        signalContainer.classList.remove('signal-up', 'signal-down');
         waitingScreen.classList.remove('hidden');
         isShowingSignal = false;
     }, 15000);
