@@ -7,14 +7,16 @@ const app = express();
 const botToken = process.env.BOT_TOKEN;
 const bot = new Telegraf(botToken || 'PLACEHOLDER_TOKEN');
 
-// Webhook setup for Telegram
-const WEBHOOK_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/index` : '';
+// The production URL of your Mini App
+const APP_URL = 'https://trade-signals-bot.vercel.app';
 
 // Bot Commands
 bot.start((ctx) => {
-  ctx.reply('Добро пожаловать в Trade! Нажмите кнопку ниже, чтобы открыть приложение.', Markup.inlineKeyboard([
-    [Markup.button.webApp('Открыть Trade', `https://${process.env.VERCEL_URL || 'your-app.vercel.app'}`)]
-  ]));
+  ctx.reply('Добро пожаловать в Trade! 📈\n\nНажмите кнопку ниже, чтобы открыть приложение и начать получать торговые сигналы.', 
+    Markup.keyboard([
+      [Markup.button.webApp('Открыть Trade', APP_URL)]
+    ]).resize()
+  );
 });
 
 app.use(cors());
