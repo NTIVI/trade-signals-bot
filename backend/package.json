@@ -1,7 +1,7 @@
 {
-  "name": "treadebot",
+  "name": "trade",
   "version": "1.0.0",
-  "description": "Telegram Mini App for TradeBot",
+  "description": "Telegram Mini App for Trade",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
