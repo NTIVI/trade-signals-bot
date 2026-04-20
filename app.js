@@ -145,6 +145,67 @@ async function analyzeMarket() {
     }
 }
 
+const stopAlarmBtn = document.getElementById('stop-alarm-btn');
+let audioContext = null;
+let oscillator = null;
+let gainNode = null;
+let alarmInterval = null;
+
+function startAlarm() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    stopAlarm(); // Clear existing if any
+
+    oscillator = audioContext.createOscillator();
+    gainNode = audioContext.createGain();
+    oscillator.type = 'square'; // Harsh sound
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    gainNode.gain.value = 0.5; // Very loud
+    oscillator.start();
+    
+    // Siren effect
+    let isHigh = false;
+    alarmInterval = setInterval(() => {
+        if (oscillator) {
+            oscillator.frequency.setValueAtTime(isHigh ? 600 : 400, audioContext.currentTime);
+            isHigh = !isHigh;
+        }
+    }, 350);
+
+    stopAlarmBtn.classList.remove('hidden');
+}
+
+function stopAlarm() {
+    if (oscillator) {
+        try { oscillator.stop(); } catch(e){}
+        oscillator.disconnect();
+        oscillator = null;
+    }
+    if (alarmInterval) {
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+    }
+    
+    stopAlarmBtn.classList.add('hidden');
+    
+    // Скрываем сигнал и возвращаемся к ожиданию
+    signalContainer.classList.add('hidden');
+    signalContainer.classList.remove('signal-up', 'signal-down');
+    waitingScreen.classList.remove('hidden');
+    analysisSteps.innerHTML = '';
+    isShowingSignal = false;
+}
+
+stopAlarmBtn.addEventListener('click', stopAlarm);
+
 function showSignal(direction, confidence) {
     isShowingSignal = true;
 
@@ -171,18 +232,13 @@ function showSignal(direction, confidence) {
         signalDirection.innerText = signalText;
     }
     
-    // Скрываем вторую строку с деталями, чтобы текст был крупным и сфокусированным
+    // Скрываем вторую строку с деталями
     signalDetails.style.display = 'none';
 
     sendSignalToBot(signalText);
-
-    setTimeout(() => {
-        signalContainer.classList.add('hidden');
-        signalContainer.classList.remove('signal-up', 'signal-down');
-        waitingScreen.classList.remove('hidden');
-        analysisSteps.innerHTML = '';
-        isShowingSignal = false;
-    }, 15000);
+    
+    // Включаем громкую сирену (сигнал останется на экране, пока пользователь не нажмет кнопку)
+    startAlarm();
 }
 
 async function sendSignalToBot(signalText) {
