@@ -258,3 +258,95 @@ select {
     border-left: 2px solid #333;
     padding-left: 8px;
 }
+
+/* Vision Panel Styles */
+.vision-panel {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 320px;
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 10px;
+}
+
+.vision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.vision-header h3 {
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+}
+
+.live-indicator {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff3366;
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+.metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.metric-item .label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    width: 60px;
+}
+
+.metric-item .value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+}
+
+.progress-bg {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-green), var(--accent-red));
+    background-size: 200% 100%;
+    transition: width 0.3s ease;
+}
+
+.candle-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.candle-indicator.GREEN { background: var(--accent-green); box-shadow: var(--glow-green); }
+.candle-indicator.RED { background: var(--accent-red); box-shadow: var(--glow-red); }
+.candle-indicator.GRAY { background: #444; }
+

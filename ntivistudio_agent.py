@@ -113,6 +113,19 @@ class NTIVISTUDIO:
             return 100 - (np.mean(points[0]) / img.shape[0] * 100)
         return 50
 
+    async def send_heartbeat(self, rsi, candle):
+        """Отправка текущего состояния рынка в Web App"""
+        payload = {
+            "action": "HEARTBEAT",
+            "rsi": round(rsi, 1),
+            "candle": candle,
+            "asset": self.current_asset,
+            "timestamp": time.time()
+        }
+        try:
+            requests.post(f"https://ntfy.sh/{self.TOPIC_SIGNALS}", data=json.dumps(payload))
+        except: pass
+
     async def run(self):
         print("--- NTIVISTUDIO АГЕНТ ЗАПУЩЕН ---")
         self.is_running = True
@@ -122,6 +135,7 @@ class NTIVISTUDIO:
         
         pattern_start_time = 0
         current_pattern = None
+        last_heartbeat = 0
         
         while self.is_running:
             try:
@@ -135,6 +149,11 @@ class NTIVISTUDIO:
                 rsi_img = self.capture_area(self.config['rsi_area'])
                 rsi_value = self.analyze_rsi(rsi_img)
                 
+                # Отправка Heartbeat раз в секунду
+                if time.time() - last_heartbeat >= 1.0:
+                    await self.send_heartbeat(rsi_value, current_candle)
+                    last_heartbeat = time.time()
+
                 detected_now = None
                 if rsi_value < 13 and current_candle == "GREEN":
                     detected_now = "UP"
@@ -153,6 +172,7 @@ class NTIVISTUDIO:
 
                 await asyncio.sleep(0.5)
             except Exception as e:
+                print(f"[ERROR] {e}")
                 await asyncio.sleep(2)
 
 if __name__ == "__main__":

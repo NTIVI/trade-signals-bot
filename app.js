@@ -96,17 +96,33 @@ async function sendControlMessage(action, asset) {
     }
 }
 
-// Listen for signals from local agent
+// Listen for signals and heartbeats from local agent
 function listenForSignals() {
     const eventSource = new EventSource(`https://ntfy.sh/${TOPIC_SIGNALS}/sse`);
     
+    // UI Elements for Vision
+    const rsiFill = document.getElementById('rsi-fill');
+    const rsiVal = document.getElementById('rsi-val');
+    const candleInd = document.getElementById('candle-indicator');
+    const candleVal = document.getElementById('candle-val');
+
     eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.message) {
             try {
-                const signal = JSON.parse(data.message);
-                if (isActive && signal.action === 'SIGNAL') {
-                    showSignal(signal);
+                const msg = JSON.parse(data.message);
+                
+                if (msg.action === 'HEARTBEAT' && isActive) {
+                    // Update RSI
+                    rsiFill.style.width = `${msg.rsi}%`;
+                    rsiVal.innerText = msg.rsi;
+                    
+                    // Update Candle
+                    candleInd.className = `candle-indicator ${msg.candle}`;
+                    candleVal.innerText = msg.candle;
+                    candleVal.style.color = msg.candle === 'GREEN' ? 'var(--accent-green)' : (msg.candle === 'RED' ? 'var(--accent-red)' : 'var(--text-secondary)');
+                } else if (msg.action === 'SIGNAL' && isActive) {
+                    showSignal(msg);
                 }
             } catch (e) {}
         }

@@ -38,6 +38,27 @@
                 </select>
             </div>
 
+            <div class="vision-panel">
+                <div class="vision-header">
+                    <h3>АНАЛИЗ РЫНКА</h3>
+                    <div id="live-indicator" class="live-indicator">LIVE</div>
+                </div>
+                <div class="metrics">
+                    <div class="metric-item">
+                        <span class="label">RSI (14):</span>
+                        <div class="progress-bg">
+                            <div id="rsi-fill" class="progress-fill" style="width: 50%;"></div>
+                        </div>
+                        <span id="rsi-val" class="value">50.0</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="label">СВЕЧА:</span>
+                        <div id="candle-indicator" class="candle-indicator gray"></div>
+                        <span id="candle-val" class="value">GRAY</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="log-container" id="log-container">
                 <div class="log-entry">Система готова к запуску...</div>
             </div>
