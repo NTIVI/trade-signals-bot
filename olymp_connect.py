@@ -104,20 +104,12 @@ class OlympTradeClient:
 
     async def connect(self, assets):
         self.assets_to_subscribe = assets
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Инициализация браузера для обхода Cloudflare...")
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Инициализация браузера...")
         self.playwright = await async_playwright().start()
         self.browser = await self.playwright.chromium.launch(headless=True)
         context = await self.browser.new_context(
             user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
         )
-        
-        # Добавляем access_token куки
-        await context.add_cookies([{
-            "name": "access_token",
-            "value": self.token,
-            "domain": ".olymptrade.com",
-            "path": "/"
-        }])
         
         self.page = await context.new_page()
         self.page.on("console", lambda msg: print(f"БРАУЗЕР: {msg.text}"))
@@ -126,8 +118,62 @@ class OlympTradeClient:
         await self.page.expose_binding("python_handle_message", self.handle_ws_message)
         await self.page.expose_binding("python_handle_open", self.handle_ws_open)
 
-        print("Переход на сайт olymptrade.com...")
-        await self.page.goto("https://olymptrade.com", wait_until="commit")
+        email = os.getenv('OLYMP_EMAIL')
+        password = os.getenv('OLYMP_PASSWORD')
+
+        if email and password:
+            print(f"Попытка автоматического входа для {email}...")
+            await self.page.goto("https://olymptrade.com", wait_until="networkidle")
+            
+            try:
+                # Нажимаем "Вход" (кнопка в хедере, чтобы открыть форму)
+                login_tab = await self.page.query_selector("text='Вход'")
+                if login_tab:
+                    await login_tab.click()
+                    await asyncio.sleep(2)
+
+                # Заполняем поля (пробуем разные селекторы)
+                email_field = await self.page.wait_for_selector("input[name='email'], input[type='email']", timeout=10000)
+                await email_field.fill(email)
+                
+                pass_field = await self.page.wait_for_selector("input[name='password'], input[type='password']", timeout=10000)
+                await pass_field.fill(password)
+                
+                # Кликаем "Войти" (сабмит внутри формы)
+                submit_btn = await self.page.query_selector("button:has-text('Войти')")
+                if not submit_btn:
+                    submit_btn = await self.page.query_selector("button[type='submit']")
+                
+                if submit_btn:
+                    await submit_btn.click()
+                    print("Кнопка входа нажата. Ожидание авторизации...")
+                    
+                    # Ждем перехода на платформу
+                    try:
+                        await self.page.wait_for_url("**/platform", timeout=45000)
+                        print("Вход выполнен успешно! Платформа загружена.")
+                    except:
+                        print("Тайм-аут ожидания /platform. Проверяем куки...")
+                    
+                    # Получаем новый токен из куки в любом случае
+                    cookies = await context.cookies()
+                    for cookie in cookies:
+                        if cookie['name'] == 'access_token':
+                            self.token = cookie['value']
+                            print("Обновленный access_token получен.")
+            except Exception as e:
+                print(f"Ошибка при авто-логине: {e}. Пробуем зайти по старому токену...")
+        else:
+            # Если логина нет, пробуем зайти по токену через инъекцию куки
+            print("Логин/пароль не найдены. Используем access_token из .env...")
+            await context.add_cookies([{
+                "name": "access_token",
+                "value": self.token,
+                "domain": ".olymptrade.com",
+                "path": "/"
+            }])
+            await self.page.goto("https://olymptrade.com", wait_until="commit")
+
         print("Ожидание проверки Cloudflare (5 сек)...")
         await asyncio.sleep(5)
         
