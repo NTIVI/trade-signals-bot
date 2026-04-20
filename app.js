@@ -96,17 +96,40 @@ async function analyzeMarket() {
         await updateStepsUI(0);
         await updateStepsUI(1);
         
-        // Fetch real signal from our API
-        const response = await fetch(`/api/latest-signal?asset=${symbol}`);
-        const data = await response.json();
+        // Fetch real signal from ntfy.sh
+        const response = await fetch(`https://ntfy.sh/trade_signals_ntivi_v1/json?poll=1`);
+        const textData = await response.text();
+        
+        let foundSignal = null;
+        
+        // ntfy returns line-delimited JSON
+        const lines = textData.split('\n').filter(line => line.trim() !== '');
+        
+        // Iterate backwards to find the latest signal for our asset
+        for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+                const msg = JSON.parse(lines[i]);
+                if (msg.event === 'message' && msg.message) {
+                    const payload = JSON.parse(msg.message);
+                    if (payload.asset === symbol) {
+                        // Check if signal is recent (within 5 minutes)
+                        const signalTime = msg.time * 1000;
+                        if (Date.now() - signalTime < 300000) {
+                            foundSignal = payload;
+                        }
+                        break; // Stop looking after finding the latest for this asset
+                    }
+                }
+            } catch (e) {}
+        }
         
         await updateStepsUI(2);
         await updateStepsUI(3);
         await updateStepsUI(4);
         
-        if (data && data.signal) {
+        if (foundSignal) {
             // We have a real signal!
-            showSignal(data.signal.direction, data.signal.confidence);
+            showSignal(foundSignal.direction, foundSignal.confidence);
         } else {
             // Если сигнала нет, просто сбрасываем состояние и ждем следующего цикла
             // Бот будет молчать, пока не появится реальный сигнал

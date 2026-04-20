@@ -202,18 +202,17 @@ class OlympTradeClient:
             except Exception as e:
                 print(f"Ошибка Telegram: {e}")
 
-        api_url = f"https://{self.vercel_url}/api/signal"
+        # Отправка сигнала в ntfy.sh для Web App
+        ntfy_url = "https://ntfy.sh/trade_signals_ntivi_v1"
         payload = {
-            "userId": self.chat_id,
-            "signalText": text,
             "asset": pair,
             "direction": signal['direction'],
             "confidence": signal['confidence']
         }
         try:
-            requests.post(api_url, json=payload)
+            requests.post(ntfy_url, data=json.dumps(payload).encode('utf-8'))
         except Exception as e:
-            pass
+            print(f"Ошибка ntfy: {e}")
 
     async def close(self):
         if self.browser:
