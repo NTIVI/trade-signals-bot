@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NTIVISTUDIO | Trading Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>NTIVI</h1>
+            <div class="status-badge">
+                <span id="status-dot" class="status-dot"></span>
+                <span id="status-text">АГЕНТ ВЫКЛЮЧЕН</span>
+            </div>
+        </header>
+
+        <div class="main-controls">
+            <div id="scanner" class="scanner-container">
+                <div class="scanner-circle"></div>
+                <button id="power-btn" class="power-btn">
+                    <i class="fas fa-power-off"></i>
+                    <span>ВКЛЮЧИТЬ</span>
+                </button>
+            </div>
+
+            <div class="asset-selection">
+                <select id="asset-select">
+                    <option value="BTCUSD">BITCOIN (BTC)</option>
+                    <option value="ETHUSD">ETHEREUM (ETH)</option>
+                    <option value="LTCUSD">LITECOIN (LTC)</option>
+                    <option value="SOLUSD">SOLANA (SOL)</option>
+                    <option value="XRPUSD">RIPPLE (XRP)</option>
+                </select>
+            </div>
+
+            <div class="log-container" id="log-container">
+                <div class="log-entry">Система готова к запуску...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сигнальное окно -->
+    <div id="signal-display" class="signal-display hidden">
+        <div class="signal-card">
+            <div id="signal-icon" style="font-size: 4rem; margin-bottom: 20px;">🔼</div>
+            <div id="direction-text" class="direction-text">ВВЕРХ</div>
+            <p style="color: var(--text-secondary);">ВРЕМЯ ЭКСПИРАЦИИ: 1 МИНУТА</p>
+            
+            <div class="confidence-bar">
+                <div id="confidence-fill" class="confidence-fill"></div>
+            </div>
+            <p id="confidence-text" style="font-size: 0.9rem;">ТОЧНОСТЬ: 97%</p>
+            
+            <button id="close-signal" class="stop-btn">ПОНЯЛ</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
