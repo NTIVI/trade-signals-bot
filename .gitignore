@@ -1,5 +1,7 @@
-node_modules
 .env
-.DS_Store
-dist
-build
+__pycache__/
+*.png
+config.json
+test_capture.py
+debug_screen.png
+calibrate_me.png
