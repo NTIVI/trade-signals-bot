@@ -120,6 +120,7 @@ class OlympTradeClient:
         }])
         
         self.page = await context.new_page()
+        self.page.on("console", lambda msg: print(f"БРАУЗЕР: {msg.text}"))
         
         # Экспортируем функцию для приема сообщений
         await self.page.expose_binding("python_handle_message", self.handle_ws_message)
