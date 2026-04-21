@@ -121,13 +121,43 @@ const Register = () => {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      if (index === -1) {
-        setFormData({ ...formData, mainPhoto: event.target.result });
-      } else {
-        const newExtras = [...formData.extraPhotos];
-        newExtras[index] = event.target.result;
-        setFormData({ ...formData, extraPhotos: newExtras });
-      }
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Max dimensions
+        const MAX_SIZE = 1000;
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Compress and convert to base64
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        
+        if (index === -1) {
+          setFormData({ ...formData, mainPhoto: compressedBase64 });
+        } else {
+          const newExtras = [...formData.extraPhotos];
+          newExtras[index] = compressedBase64;
+          setFormData({ ...formData, extraPhotos: newExtras });
+        }
+      };
+      img.src = event.target.result;
     };
     reader.readAsDataURL(file);
   };
