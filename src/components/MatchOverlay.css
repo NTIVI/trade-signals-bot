@@ -1,0 +1,107 @@
+.match-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.match-content {
+  text-align: center;
+  color: white;
+  width: 100%;
+  max-width: 400px;
+}
+
+.match-content h1 {
+  font-size: 48px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  font-style: italic;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.match-content p {
+  font-size: 16px;
+  opacity: 0.8;
+  margin-bottom: 40px;
+}
+
+.match-avatars {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.avatar-left, .avatar-right {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid white;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(255, 77, 109, 0.5);
+}
+
+.avatar-left {
+  transform: translateX(15px) rotate(-10deg);
+}
+
+.avatar-right {
+  transform: translateX(-15px) rotate(10deg);
+  z-index: 1;
+}
+
+.match-avatars img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.match-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.send-msg-btn {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 18px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.keep-swiping-btn {
+  background: transparent;
+  color: white;
+  padding: 16px;
+  border-radius: 30px;
+  border: 2px solid white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.close-overlay {
+  position: absolute;
+  top: 40px;
+  right: 24px;
+  background: none;
+  color: white;
+  opacity: 0.6;
+}

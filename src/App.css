@@ -1,0 +1,52 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(60px + var(--safe-area-inset-bottom));
+  background: var(--tg-secondary-bg-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: var(--safe-area-inset-bottom);
+  border-top: 1px solid var(--glass-border);
+  z-index: 1000;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  padding: 8px;
+}
+
+.nav-icon {
+  font-size: 24px;
+}
+
+.nav-label {
+  font-size: 10px;
+  color: var(--tg-hint-color);
+  font-weight: 500;
+}
+
+.nav-item.active .nav-label {
+  color: var(--tg-button-color);
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.1);
+}

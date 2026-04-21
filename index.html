@@ -1,86 +1,17 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NTIVISTUDIO | Trading Agent</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Dating TWA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-    <div id="app">
-        <header>
-            <h1>NTIVI</h1>
-            <div class="status-badge">
-                <span id="status-dot" class="status-dot"></span>
-                <span id="status-text">АГЕНТ ВЫКЛЮЧЕН</span>
-            </div>
-        </header>
-
-        <div class="main-controls">
-            <div id="scanner" class="scanner-container">
-                <div class="scanner-circle"></div>
-                <button id="power-btn" class="power-btn">
-                    <i class="fas fa-power-off"></i>
-                    <span>ВКЛЮЧИТЬ</span>
-                </button>
-            </div>
-
-            <div class="asset-selection">
-                <select id="asset-select">
-                    <option value="BTCUSD">BITCOIN (BTC)</option>
-                    <option value="ETHUSD">ETHEREUM (ETH)</option>
-                    <option value="LTCUSD">LITECOIN (LTC)</option>
-                    <option value="SOLUSD">SOLANA (SOL)</option>
-                    <option value="XRPUSD">RIPPLE (XRP)</option>
-                </select>
-            </div>
-
-            <div class="vision-panel">
-                <div class="vision-header">
-                    <h3>АНАЛИЗ РЫНКА</h3>
-                    <div id="live-indicator" class="live-indicator">LIVE</div>
-                </div>
-                <div class="metrics">
-                    <div class="metric-item">
-                        <span class="label">RSI (14):</span>
-                        <div class="progress-bg">
-                            <div id="rsi-fill" class="progress-fill" style="width: 50%;"></div>
-                        </div>
-                        <span id="rsi-val" class="value">50.0</span>
-                    </div>
-                    <div class="metric-item">
-                        <span class="label">СВЕЧА:</span>
-                        <div id="candle-indicator" class="candle-indicator gray"></div>
-                        <span id="candle-val" class="value">GRAY</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="log-container" id="log-container">
-                <div class="log-entry">Система готова к запуску...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Сигнальное окно -->
-    <div id="signal-display" class="signal-display hidden">
-        <div class="signal-card">
-            <div id="signal-icon" style="font-size: 4rem; margin-bottom: 20px;">🔼</div>
-            <div id="direction-text" class="direction-text">ВВЕРХ</div>
-            <p style="color: var(--text-secondary);">ВРЕМЯ ЭКСПИРАЦИИ: 1 МИНУТА</p>
-            
-            <div class="confidence-bar">
-                <div id="confidence-fill" class="confidence-fill"></div>
-            </div>
-            <p id="confidence-text" style="font-size: 0.9rem;">ТОЧНОСТЬ: 97%</p>
-            
-            <button id="close-signal" class="stop-btn">ПОНЯЛ</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
-</body>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
