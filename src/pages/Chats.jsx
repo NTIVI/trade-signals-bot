@@ -62,13 +62,16 @@ const Chats = () => {
       
       <div className="matches-section">
         <h3>Новые пары</h3>
-        <div className="matches-list">
-          <div className="match-item new">
-            <div className="match-avatar-ring">
-              <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100" alt="New match" />
+        <div className="matches-scroll-container">
+          {matches.map(match => (
+            <div key={match.id} className="match-item new">
+              <div className="match-avatar-ring">
+                <img src={match.avatar} alt={match.name} />
+              </div>
+              <span>{match.name}</span>
             </div>
-            <span>Саша</span>
-          </div>
+          ))}
+          {matches.length === 0 && <p className="no-matches">Пока нет новых пар</p>}
         </div>
       </div>
 

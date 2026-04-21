@@ -9,24 +9,19 @@
 .register-header h1 {
   font-size: 28px;
   font-weight: 800;
-  margin-bottom: 16px;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin-bottom: 20px;
 }
 
 .progress-bar {
-  width: 100%;
   height: 6px;
-  background: var(--tg-secondary-bg-color);
+  background: rgba(255,255,255,0.1);
   border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 40px;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--primary-gradient);
+  background: var(--accent-gradient);
   transition: width 0.3s ease;
 }
 
@@ -54,51 +49,63 @@
 }
 
 .intention-card {
-  padding: 16px 12px;
-  border-radius: 16px;
-  background: var(--tg-secondary-bg-color);
+  padding: 20px 15px;
+  border-radius: 20px;
+  background: var(--card-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  border: 2px solid transparent;
+  border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
-  text-align: center;
+  color: var(--text-secondary);
 }
 
 .intention-card.active {
-  background: var(--tg-bg-color);
-  border-color: #ff4d6d;
-  box-shadow: var(--shadow-md);
-  transform: translateY(-4px);
+  background: rgba(255, 77, 109, 0.15);
+  border-color: var(--primary-color);
+  color: white;
+  transform: scale(1.05);
 }
 
 .intention-card span {
+  font-size: 13px;
   font-weight: 600;
-  font-size: 14px;
+  text-align: center;
 }
 
-/* Basic Info */
+/* Basic Info Form */
+.basic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .input-group {
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .input-group label {
-  display: block;
   font-size: 14px;
   font-weight: 600;
-  color: var(--tg-hint-color);
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  padding-left: 5px;
 }
 
 .input-group input {
-  width: 100%;
-  padding: 16px;
-  border-radius: 12px;
-  background: var(--tg-secondary-bg-color);
+  background: var(--card-bg);
   border: 1px solid var(--glass-border);
-  color: var(--tg-text-color);
+  border-radius: 18px;
+  padding: 16px 20px;
+  color: white;
   font-size: 16px;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: var(--primary-color);
 }
 
 .gender-selector {
@@ -108,16 +115,19 @@
 
 .gender-selector button {
   flex: 1;
-  padding: 14px;
-  border-radius: 12px;
-  background: var(--tg-secondary-bg-color);
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
   font-weight: 600;
-  color: var(--tg-text-color);
+  cursor: pointer;
 }
 
 .gender-selector button.active {
-  background: var(--primary-gradient);
+  background: var(--primary-color);
   color: white;
+  border-color: var(--primary-color);
 }
 
 /* Avatar Upload */
@@ -125,20 +135,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 25px;
+  padding-top: 20px;
 }
 
 .avatar-preview {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 60px;
   overflow: hidden;
-  background: var(--tg-secondary-bg-color);
+  border: 4px solid var(--glass-border);
+  background: var(--card-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4px solid var(--tg-secondary-bg-color);
-  box-shadow: var(--shadow-lg);
 }
 
 .avatar-preview img {
@@ -148,30 +158,24 @@
 }
 
 .upload-btn {
-  padding: 12px 24px;
-  background: var(--tg-button-color);
-  color: var(--tg-button-text-color);
-  border-radius: 30px;
-  font-weight: 600;
+  padding: 16px 32px;
+  background: var(--accent-gradient);
+  border-radius: 18px;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(255, 77, 109, 0.3);
 }
 
-.hint {
-  font-size: 12px;
-  color: var(--tg-hint-color);
-  text-align: center;
-}
-
-/* Next Button */
 .next-btn {
   width: 100%;
   padding: 18px;
-  border-radius: 16px;
-  background: var(--primary-gradient);
+  border-radius: 20px;
+  border: none;
+  background: var(--primary-color);
   color: white;
   font-size: 18px;
   font-weight: 700;
-  margin-top: 24px;
-  box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+  margin-top: 30px;
+  box-shadow: 0 10px 25px rgba(255, 77, 109, 0.4);
 }
 .next-btn.loading { opacity: 0.7; transform: scale(0.98); box-shadow: none; }

@@ -22,8 +22,14 @@ function App() {
     onExpand();
 
     const checkRegistration = async () => {
+      // If we don't have a user ID within 3 seconds, stop checking and show UI
+      const timeout = setTimeout(() => {
+        setIsChecking(false);
+      }, 3000);
+
       if (!user?.id) {
         setIsChecking(false);
+        clearTimeout(timeout);
         return;
       }
       
@@ -34,10 +40,6 @@ function App() {
           .eq('id', user.id)
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Registration check error:', error);
-        }
-
         if (!data && location.pathname !== '/register') {
           navigate('/register');
         } else if (data && location.pathname === '/register') {
@@ -47,6 +49,7 @@ function App() {
         console.error('Check failed:', err);
       } finally {
         setIsChecking(false);
+        clearTimeout(timeout);
       }
     };
 
@@ -57,6 +60,7 @@ function App() {
     return (
       <div className="loading-state">
         <div className="loader"></div>
+        <p style={{ marginTop: '10px', fontSize: '14px', opacity: 0.7 }}>Загрузка профиля...</p>
       </div>
     );
   }
