@@ -27,7 +27,7 @@ function App() {
         setIsChecking(false);
       }, 3000);
 
-      if (!user?.id) {
+      if (!user?.id || !supabase.supabaseUrl || supabase.supabaseUrl.includes('placeholder')) {
         setIsChecking(false);
         clearTimeout(timeout);
         return;
@@ -89,7 +89,10 @@ function App() {
             <button
               key={item.id}
               className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-              onClick={() => navigate(item.path)}
+              onClick={() => {
+                tg.HapticFeedback.impactOccurred('light');
+                navigate(item.path);
+              }}
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>

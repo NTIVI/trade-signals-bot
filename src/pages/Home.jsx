@@ -40,6 +40,7 @@ const Home = ({ onChat }) => {
   const handleSwipe = async (direction) => {
     const targetUser = users[currentIndex];
     console.log(`Swiped ${direction} on ${targetUser.full_name}`);
+    tg.HapticFeedback.impactOccurred('medium');
     
     if (direction === 'right') {
       // Save like and check for match

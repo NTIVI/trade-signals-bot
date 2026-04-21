@@ -29,12 +29,32 @@ const Register = () => {
     { id: 'travel', label: 'Поиск попутчика', icon: <MessageCircle size={20} strokeWidth={1} /> },
   ];
 
+  useEffect(() => {
+    tg.MainButton.setParams({
+      text: step === 3 ? 'ГОТОВО' : 'ДАЛЕЕ',
+      color: '#ff4d6d',
+      text_color: '#ffffff',
+      is_visible: true
+    });
+
+    const handleMainButtonClick = () => {
+      handleNext();
+    };
+
+    tg.onEvent('mainButtonClicked', handleMainButtonClick);
+    return () => {
+      tg.offEvent('mainButtonClicked', handleMainButtonClick);
+      tg.MainButton.hide();
+    };
+  }, [step, formData]);
+
   const handleNext = async () => {
     if (step < 3) {
       if (step === 2 && (!formData.name || !formData.age || !formData.gender)) {
         tg.showAlert('Пожалуйста, заполните все поля!');
         return;
       }
+      tg.HapticFeedback.impactOccurred('light');
       setStep(step + 1);
     } else {
       if (!formData.avatar) {
@@ -43,10 +63,15 @@ const Register = () => {
       }
 
       setLoading(true);
+      tg.MainButton.showProgress();
       try {
         const ageInt = parseInt(formData.age);
         if (isNaN(ageInt)) {
           throw new Error('Возраст должен быть числом');
+        }
+
+        if (!supabase.supabaseUrl || supabase.supabaseUrl.includes('placeholder')) {
+          throw new Error('Supabase не настроен. Пожалуйста, добавьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в файл .env');
         }
 
         const { error } = await supabase
@@ -63,13 +88,20 @@ const Register = () => {
 
         if (error) throw error;
 
+        tg.HapticFeedback.notificationOccurred('success');
         localStorage.setItem('registered', 'true');
         navigate('/');
       } catch (error) {
         console.error('Error saving profile:', error);
-        tg.showAlert('Ошибка: ' + (error.message || 'Не удалось сохранить профиль. Возможно, фото слишком большое.'));
+        tg.HapticFeedback.notificationOccurred('error');
+        let errorMsg = error.message;
+        if (errorMsg.includes('fetch') || errorMsg.includes('NetworkError')) {
+          errorMsg = 'Ошибка сети. Проверьте подключение к Supabase (URL и Ключ в .env).';
+        }
+        tg.showAlert('Ошибка: ' + errorMsg);
       } finally {
         setLoading(false);
+        tg.MainButton.hideProgress();
       }
     }
   };
