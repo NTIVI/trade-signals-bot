@@ -22,14 +22,13 @@ const MatchOverlay = ({ user, onClose, onChat }) => {
           Это Мэтч!
         </motion.h1>
         
-        <p>Вы и {user.name} понравились друг другу.</p>
-
+        <p>Вы и {user.full_name} понравились друг другу.</p>
         <div className="match-avatars">
           <div className="avatar-left">
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200" alt="Me" />
+            <img src={user.avatar_url} alt={user.full_name} />
           </div>
           <div className="avatar-right">
-            <img src={user.photo} alt={user.name} />
+            <div className="heart-icon">❤️</div>
           </div>
         </div>
 
