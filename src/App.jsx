@@ -26,9 +26,9 @@ function App() {
   }, [tg, onExpand, navigate, location.pathname]);
 
   const navItems = [
-    { id: 'home', path: '/', label: 'Home', icon: '🔥' },
-    { id: 'chats', path: '/chats', label: 'Chats', icon: '💬' },
-    { id: 'profile', path: '/profile', label: 'Profile', icon: '👤' },
+    { id: 'home', path: '/', label: 'Главная', icon: '🔥' },
+    { id: 'chats', path: '/chats', label: 'Чаты', icon: '💬' },
+    { id: 'profile', path: '/profile', label: 'Профиль', icon: '👤' },
   ];
 
   const showNav = ['/', '/chats', '/profile'].includes(location.pathname);

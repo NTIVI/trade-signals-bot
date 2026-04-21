@@ -1,18 +1,76 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Send, Image, Smile } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useTelegram } from '../hooks/useTelegram';
 import './ChatDetail.css';
 
 const ChatDetail = () => {
   const { id } = useParams();
+  const { user } = useTelegram();
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Hey there!', sender: 'them', time: '12:45' },
-    { id: 2, text: 'Hi Anna, how are you?', sender: 'me', time: '12:46' },
-    { id: 3, text: 'I am doing great, just saw your profile!', sender: 'them', time: '12:47' },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [otherUser, setOtherUser] = useState(null);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    fetchMessages();
+    fetchOtherUser();
+
+    // Subscribe to real-time messages
+    const channel = supabase
+      .channel(`chat:${id}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'messages',
+        filter: `match_id=eq.${id}`
+      }, (payload) => {
+        setMessages(prev => [...prev, {
+          id: payload.new.id,
+          text: payload.new.content,
+          sender: payload.new.sender_id === user.id ? 'me' : 'them',
+          time: new Date(payload.new.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
+  const fetchMessages = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('match_id', id)
+      .order('created_at', { ascending: true });
+
+    if (!error && data) {
+      setMessages(data.map(m => ({
+        id: m.id,
+        text: m.content,
+        sender: m.sender_id === user.id ? 'me' : 'them',
+        time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })));
+    }
+  };
+
+  const fetchOtherUser = async () => {
+    const { data, error } = await supabase
+      .from('matches')
+      .select(`
+        user_1 (id, full_name, avatar_url),
+        user_2 (id, full_name, avatar_url)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (!error && data) {
+      const other = data.user_1.id === user.id ? data.user_2 : data.user_1;
+      setOtherUser(other);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,16 +80,22 @@ const ChatDetail = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!message.trim()) return;
-    const newMessage = {
-      id: Date.now(),
-      text: message,
-      sender: 'me',
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages([...messages, newMessage]);
-    setMessage('');
+    
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        match_id: id,
+        sender_id: user.id,
+        content: message
+      });
+
+    if (error) {
+      console.error('Error sending message:', error);
+    } else {
+      setMessage('');
+    }
   };
 
   return (
@@ -41,10 +105,10 @@ const ChatDetail = () => {
           <ChevronLeft size={24} />
         </button>
         <div className="chat-user-info">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Anna" className="header-avatar" />
+          <img src={otherUser?.avatar_url || 'https://via.placeholder.com/40'} alt={otherUser?.full_name} className="header-avatar" />
           <div className="header-text">
-            <h3>Anna</h3>
-            <span>Online</span>
+            <h3>{otherUser?.full_name || 'Загрузка...'}</h3>
+            <span>В сети</span>
           </div>
         </div>
       </div>
@@ -66,7 +130,7 @@ const ChatDetail = () => {
         <div className="input-wrapper">
           <input 
             type="text" 
-            placeholder="Type a message..." 
+            placeholder="Сообщение..." 
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}

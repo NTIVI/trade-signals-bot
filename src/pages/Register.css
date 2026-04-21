@@ -38,12 +38,24 @@
 .intentions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.intentions-grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.intentions-grid::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 2px;
 }
 
 .intention-card {
-  padding: 24px;
-  border-radius: 20px;
+  padding: 16px 12px;
+  border-radius: 16px;
   background: var(--tg-secondary-bg-color);
   display: flex;
   flex-direction: column;

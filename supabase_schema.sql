@@ -1,7 +1,7 @@
 -- Create profiles table
 CREATE TABLE profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  username TEXT UNIQUE,
+  id BIGINT PRIMARY KEY, -- Telegram User ID
+  username TEXT,
   full_name TEXT,
   avatar_url TEXT,
   age INTEGER,
@@ -10,11 +10,20 @@ CREATE TABLE profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Create likes table
+CREATE TABLE likes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  from_user BIGINT REFERENCES profiles(id) ON DELETE CASCADE,
+  to_user BIGINT REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  UNIQUE(from_user, to_user)
+);
+
 -- Create matches table
 CREATE TABLE matches (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_1 UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  user_2 UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_1 BIGINT REFERENCES profiles(id) ON DELETE CASCADE,
+  user_2 BIGINT REFERENCES profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   UNIQUE(user_1, user_2)
 );
@@ -23,7 +32,7 @@ CREATE TABLE matches (
 CREATE TABLE messages (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   match_id UUID REFERENCES matches(id) ON DELETE CASCADE,
-  sender_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  sender_id BIGINT REFERENCES profiles(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );

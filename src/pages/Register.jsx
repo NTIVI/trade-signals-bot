@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { Camera, User, Heart, MessageCircle, Star } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import './Register.css';
 
 const Register = () => {
@@ -17,25 +18,46 @@ const Register = () => {
   });
 
   const intentionsList = [
-    { id: 'dating', label: 'Dating', icon: <Heart size={20} /> },
-    { id: 'friendship', label: 'Friendship', icon: <User size={20} /> },
-    { id: 'serious', label: 'Serious relationship', icon: <Star size={20} /> },
-    { id: 'chat', label: 'Just chatting', icon: <MessageCircle size={20} /> },
+    { id: 'serious', label: 'Серьёзные отношения', icon: <Heart size={20} /> },
+    { id: 'dating', label: 'Свидания', icon: <Star size={20} /> },
+    { id: 'friendship', label: 'Дружба', icon: <User size={20} /> },
+    { id: 'chat', label: 'Просто общение', icon: <MessageCircle size={20} /> },
+    { id: 'adult', label: '18+ Знакомства', icon: <Star size={20} fill="currentColor" /> },
+    { id: 'casual', label: 'Свободные отношения', icon: <Heart size={20} strokeDasharray="4 4" /> },
+    { id: 'event', label: 'Пойти на ивент', icon: <User size={20} strokeWidth={3} /> },
+    { id: 'travel', label: 'Поиск попутчика', icon: <MessageCircle size={20} strokeWidth={1} /> },
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Finalize registration
       if (!formData.avatar) {
-        tg.showAlert('Please upload an avatar to continue!');
+        tg.showAlert('Пожалуйста, загрузите аватарку!');
         return;
       }
-      // Here we would save to Supabase
-      localStorage.setItem('registered', 'true');
-      console.log('Registration complete:', formData);
-      navigate('/');
+
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user?.id,
+            username: user?.username,
+            full_name: formData.name,
+            avatar_url: formData.avatar,
+            age: parseInt(formData.age),
+            gender: formData.gender,
+            intentions: formData.intentions,
+          });
+
+        if (error) throw error;
+
+        localStorage.setItem('registered', 'true');
+        navigate('/');
+      } catch (error) {
+        console.error('Error saving profile:', error);
+        tg.showAlert('Ошибка при сохранении профиля: ' + error.message);
+      }
     }
   };
 
@@ -62,7 +84,7 @@ const Register = () => {
   return (
     <div className="register-container fade-in">
       <div className="register-header">
-        <h1>{step === 1 ? 'What are you looking for?' : step === 2 ? 'About you' : 'Almost there!'}</h1>
+        <h1>{step === 1 ? 'Что вы ищете?' : step === 2 ? 'О себе' : 'Почти готово!'}</h1>
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
@@ -87,16 +109,16 @@ const Register = () => {
         {step === 2 && (
           <div className="basic-info">
             <div className="input-group">
-              <label>Name</label>
+              <label>Имя</label>
               <input 
                 type="text" 
                 value={formData.name} 
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Your name"
+                placeholder="Ваше имя"
               />
             </div>
             <div className="input-group">
-              <label>Age</label>
+              <label>Возраст</label>
               <input 
                 type="number" 
                 value={formData.age} 
@@ -105,16 +127,16 @@ const Register = () => {
               />
             </div>
             <div className="input-group">
-              <label>Gender</label>
+              <label>Пол</label>
               <div className="gender-selector">
                 <button 
                   className={formData.gender === 'male' ? 'active' : ''} 
                   onClick={() => setFormData({...formData, gender: 'male'})}
-                >Male</button>
+                >Мужской</button>
                 <button 
                   className={formData.gender === 'female' ? 'active' : ''} 
                   onClick={() => setFormData({...formData, gender: 'female'})}
-                >Female</button>
+                >Женский</button>
               </div>
             </div>
           </div>
@@ -133,15 +155,15 @@ const Register = () => {
             </div>
             <label className="upload-btn">
               <input type="file" accept="image/*" onChange={handleAvatarChange} hidden />
-              {formData.avatar ? 'Change Photo' : 'Upload Photo'}
+              {formData.avatar ? 'Изменить фото' : 'Загрузить фото'}
             </label>
-            <p className="hint">A profile picture is mandatory to join the community.</p>
+            <p className="hint">Аватарка обязательна для вступления в сообщество.</p>
           </div>
         )}
       </div>
 
       <button className="next-btn" onClick={handleNext}>
-        {step === 3 ? 'Finish' : 'Next'}
+        {step === 3 ? 'Готово' : 'Далее'}
       </button>
     </div>
   );

@@ -1,23 +1,58 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';
 import { Settings, Edit2, Shield, HelpCircle } from 'lucide-react';
 import './Profile.css';
 
 const Profile = () => {
   const { user } = useTelegram();
+  const [stats, setStats] = useState([
+    { label: 'Лайки', value: '0' },
+    { label: 'Пары', value: '0' },
+    { label: 'Просмотры', value: '0' },
+  ]);
+  const [dbProfile, setDbProfile] = useState(null);
 
-  const stats = [
-    { label: 'Likes', value: '124' },
-    { label: 'Matches', value: '12' },
-    { label: 'Views', value: '450' },
-  ];
+  useEffect(() => {
+    fetchProfile();
+    fetchStats();
+  }, []);
+
+  const fetchProfile = async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user?.id)
+      .single();
+    
+    if (!error && data) setDbProfile(data);
+  };
+
+  const fetchStats = async () => {
+    // This is a simplified example. In a real app, you'd use RPC or count queries.
+    const { count: likesCount } = await supabase
+      .from('likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('to_user', user?.id);
+
+    const { count: matchesCount } = await supabase
+      .from('matches')
+      .select('*', { count: 'exact', head: true })
+      .or(`user_1.eq.${user?.id},user_2.eq.${user?.id}`);
+
+    setStats([
+      { label: 'Лайки', value: likesCount || 0 },
+      { label: 'Пары', value: matchesCount || 0 },
+      { label: 'Просмотры', value: '0' },
+    ]);
+  };
 
   return (
     <div className="profile-container fade-in">
       <div className="profile-header">
         <div className="profile-avatar-container">
           <img 
-            src={user?.photo_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200'} 
+            src={dbProfile?.avatar_url || user?.photo_url || 'https://via.placeholder.com/120'} 
             alt="Profile" 
             className="profile-avatar"
           />
@@ -25,8 +60,8 @@ const Profile = () => {
             <Edit2 size={16} />
           </button>
         </div>
-        <h1 className="profile-name">{user?.first_name || 'Alex'}, 24</h1>
-        <p className="profile-status">Looking for: Dating, Friendship</p>
+        <h1 className="profile-name">{dbProfile?.full_name || user?.first_name}, {dbProfile?.age}</h1>
+        <p className="profile-status">Ищу: {dbProfile?.intentions?.join(', ')}</p>
       </div>
 
       <div className="stats-row">
@@ -41,19 +76,19 @@ const Profile = () => {
       <div className="menu-list">
         <div className="menu-item">
           <Settings size={20} />
-          <span>Account Settings</span>
+          <span>Настройки аккаунта</span>
         </div>
         <div className="menu-item">
           <Shield size={20} />
-          <span>Privacy & Safety</span>
+          <span>Приватность</span>
         </div>
         <div className="menu-item">
           <HelpCircle size={20} />
-          <span>Help Center</span>
+          <span>Центр помощи</span>
         </div>
       </div>
 
-      <button className="logout-btn">Log Out</button>
+      <button className="logout-btn">Выйти</button>
     </div>
   );
 };
