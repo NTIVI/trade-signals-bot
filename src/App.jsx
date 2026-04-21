@@ -22,10 +22,10 @@ function App() {
     onExpand();
 
     const checkRegistration = async () => {
-      // If we don't have a user ID within 3 seconds, stop checking and show UI
+      // Fast timeout for snappier loading
       const timeout = setTimeout(() => {
         setIsChecking(false);
-      }, 3000);
+      }, 1200);
 
       if (!user?.id || !supabase.supabaseUrl || supabase.supabaseUrl.includes('placeholder')) {
         setIsChecking(false);

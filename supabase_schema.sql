@@ -7,6 +7,9 @@ CREATE TABLE profiles (
   age INTEGER,
   gender TEXT,
   intentions TEXT[],
+  city TEXT,
+  country TEXT,
+  bio TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 

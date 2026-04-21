@@ -72,7 +72,14 @@ const Profile = () => {
           </button>
         </div>
         <h1 className="profile-name">{dbProfile?.full_name || user?.first_name}, {dbProfile?.age}</h1>
+        <p className="profile-location">{dbProfile?.country}, {dbProfile?.city}</p>
         <p className="profile-status">Ищу: {dbProfile?.intentions?.join(', ')}</p>
+        {dbProfile?.bio && (
+          <div className="profile-bio-card">
+            <h3>О себе</h3>
+            <p>{dbProfile.bio}</p>
+          </div>
+        )}
       </div>
 
       <div className="stats-row">

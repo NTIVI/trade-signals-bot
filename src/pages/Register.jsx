@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
-import { Camera, User, Heart, MessageCircle, Star } from 'lucide-react';
+import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Register.css';
 
@@ -16,6 +16,9 @@ const Register = () => {
     gender: '',
     intentions: [],
     avatar: user?.photo_url || null,
+    city: '',
+    country: '',
+    bio: '',
   });
 
   const intentionsList = [
@@ -32,7 +35,7 @@ const Register = () => {
   useEffect(() => {
     tg.MainButton.setParams({
       text: step === 3 ? 'ГОТОВО' : 'ДАЛЕЕ',
-      color: '#ff4d6d',
+      color: '#ff0055',
       text_color: '#ffffff',
       is_visible: true
     });
@@ -50,15 +53,15 @@ const Register = () => {
 
   const handleNext = async () => {
     if (step < 3) {
-      if (step === 2 && (!formData.name || !formData.age || !formData.gender)) {
-        tg.showAlert('Пожалуйста, заполните все поля!');
+      if (step === 2 && (!formData.name || !formData.age || !formData.gender || !formData.city || !formData.country)) {
+        tg.showAlert('Пожалуйста, заполните все основные поля!');
         return;
       }
       tg.HapticFeedback.impactOccurred('light');
       setStep(step + 1);
     } else {
       if (!formData.avatar) {
-        tg.showAlert('Пожалуйста, загрузите аватарку!');
+        tg.showAlert('Пожалуйста, загрузите фото!');
         return;
       }
 
@@ -66,13 +69,7 @@ const Register = () => {
       tg.MainButton.showProgress();
       try {
         const ageInt = parseInt(formData.age);
-        if (isNaN(ageInt)) {
-          throw new Error('Возраст должен быть числом');
-        }
-
-        if (!supabase.supabaseUrl || supabase.supabaseUrl.includes('placeholder')) {
-          throw new Error('Supabase не настроен. Пожалуйста, добавьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в файл .env');
-        }
+        if (isNaN(ageInt)) throw new Error('Возраст должен быть числом');
 
         const { error } = await supabase
           .from('profiles')
@@ -84,21 +81,18 @@ const Register = () => {
             age: ageInt,
             gender: formData.gender,
             intentions: formData.intentions,
+            city: formData.city,
+            country: formData.country,
+            bio: formData.bio,
           });
 
         if (error) throw error;
-
         tg.HapticFeedback.notificationOccurred('success');
         localStorage.setItem('registered', 'true');
         navigate('/');
       } catch (error) {
-        console.error('Error saving profile:', error);
         tg.HapticFeedback.notificationOccurred('error');
-        let errorMsg = error.message;
-        if (errorMsg.includes('fetch') || errorMsg.includes('NetworkError')) {
-          errorMsg = 'Ошибка сети. Проверьте подключение к Supabase (URL и Ключ в .env).';
-        }
-        tg.showAlert('Ошибка: ' + errorMsg);
+        tg.showAlert('Ошибка: ' + error.message);
       } finally {
         setLoading(false);
         tg.MainButton.hideProgress();
@@ -127,24 +121,15 @@ const Register = () => {
           const MAX_HEIGHT = 800;
           let width = img.width;
           let height = img.height;
-
           if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
           } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
           }
-
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
           setFormData(prev => ({ ...prev, avatar: compressedBase64 }));
         };
@@ -157,7 +142,7 @@ const Register = () => {
   return (
     <div className="register-container fade-in">
       <div className="register-header">
-        <h1>{step === 1 ? 'Что вы ищете?' : step === 2 ? 'О себе' : 'Почти готово!'}</h1>
+        <h1>{step === 1 ? 'Что вы ищете?' : step === 2 ? 'О себе' : 'Последний штрих'}</h1>
         <div className="progress-bar">
           <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }}></div>
         </div>
@@ -180,64 +165,97 @@ const Register = () => {
         )}
 
         {step === 2 && (
-          <div className="basic-info">
+          <div className="basic-info fade-in">
             <div className="input-group">
-              <label>Имя</label>
+              <label><User size={14} /> Имя</label>
               <input 
                 type="text" 
-                value={formData.name} 
+                value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Ваше имя"
+                placeholder="Как вас зовут?"
               />
             </div>
             <div className="input-group">
               <label>Возраст</label>
               <input 
                 type="number" 
-                value={formData.age} 
+                value={formData.age}
                 onChange={(e) => setFormData({...formData, age: e.target.value})}
-                placeholder="20"
+                placeholder="Ваш возраст"
               />
             </div>
             <div className="input-group">
               <label>Пол</label>
               <div className="gender-selector">
                 <button 
-                  className={formData.gender === 'male' ? 'active' : ''} 
+                  className={formData.gender === 'male' ? 'active' : ''}
                   onClick={() => setFormData({...formData, gender: 'male'})}
-                >Мужской</button>
+                >Мужчина</button>
                 <button 
-                  className={formData.gender === 'female' ? 'active' : ''} 
+                  className={formData.gender === 'female' ? 'active' : ''}
                   onClick={() => setFormData({...formData, gender: 'female'})}
-                >Женский</button>
+                >Женщина</button>
+              </div>
+            </div>
+            <div className="input-row" style={{ display: 'flex', gap: '10px' }}>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label><Globe size={14} /> Страна</label>
+                <input 
+                  type="text" 
+                  value={formData.country}
+                  onChange={(e) => setFormData({...formData, country: e.target.value})}
+                  placeholder="Россия"
+                />
+              </div>
+              <div className="input-group" style={{ flex: 1 }}>
+                <label><MapPin size={14} /> Город</label>
+                <input 
+                  type="text" 
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  placeholder="Москва"
+                />
               </div>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="avatar-upload">
+          <div className="avatar-upload fade-in">
             <div className="avatar-preview">
               {formData.avatar ? (
-                <img src={formData.avatar} alt="Avatar" />
+                <img src={formData.avatar} alt="Preview" />
               ) : (
-                <div className="avatar-placeholder">
-                  <Camera size={48} color="var(--tg-hint-color)" />
-                </div>
+                <Camera size={48} color="rgba(255,255,255,0.2)" />
               )}
             </div>
             <label className="upload-btn">
-              <input type="file" accept="image/*" onChange={handleAvatarChange} hidden />
-              {formData.avatar ? 'Изменить фото' : 'Загрузить фото'}
+              Выбрать фото
+              <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
             </label>
-            <p className="hint">Аватарка обязательна для вступления в сообщество.</p>
+            <div className="input-group" style={{ width: '100%', marginTop: '20px' }}>
+              <label>О себе</label>
+              <textarea 
+                className="bio-textarea"
+                style={{
+                  width: '100%',
+                  minHeight: '100px',
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '18px',
+                  padding: '15px',
+                  color: 'white',
+                  fontFamily: 'inherit',
+                  resize: 'none'
+                }}
+                value={formData.bio}
+                onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                placeholder="Расскажите немного о себе..."
+              />
+            </div>
           </div>
         )}
       </div>
-
-      <button className={`next-btn ${loading ? 'loading' : ''}`} onClick={handleNext} disabled={loading}>
-        {loading ? 'Загрузка...' : (step === 3 ? 'Готово' : 'Далее')}
-      </button>
     </div>
   );
 };
