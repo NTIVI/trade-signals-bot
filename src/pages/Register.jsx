@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
-import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe } from 'lucide-react';
+import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe, Calendar, Hash } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Register.css';
 
@@ -13,8 +13,10 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: user?.first_name || '',
     age: '',
+    birth_year: '',
     gender: '',
     intentions: [],
+    interests: [],
     avatar: user?.photo_url || null,
     city: '',
     country: '',
@@ -22,19 +24,17 @@ const Register = () => {
   });
 
   const intentionsList = [
-    { id: 'serious', label: 'Серьёзные отношения', icon: <Heart size={20} /> },
-    { id: 'dating', label: 'Свидания', icon: <Star size={20} /> },
-    { id: 'friendship', label: 'Дружба', icon: <User size={20} /> },
-    { id: 'chat', label: 'Просто общение', icon: <MessageCircle size={20} /> },
-    { id: 'adult', label: '18+ Знакомства', icon: <Star size={20} fill="currentColor" /> },
-    { id: 'casual', label: 'Свободные отношения', icon: <Heart size={20} strokeDasharray="4 4" /> },
-    { id: 'event', label: 'Пойти на ивент', icon: <User size={20} strokeWidth={3} /> },
-    { id: 'travel', label: 'Поиск попутчика', icon: <MessageCircle size={20} strokeWidth={1} /> },
+    { id: 'serious', label: 'Серьёзные отношения', icon: <Heart size={24} /> },
+    { id: 'dating', label: 'Свидания', icon: <Star size={24} /> },
+    { id: 'friendship', label: 'Дружба', icon: <User size={24} /> },
+    { id: 'chat', label: 'Просто общение', icon: <MessageCircle size={24} /> },
+    { id: 'adult', label: '18+ Знакомства', icon: <Hash size={24} /> },
+    { id: 'casual', label: 'Свободные отношения', icon: <Heart size={24} strokeDasharray="4 4" /> },
   ];
 
   useEffect(() => {
     tg.MainButton.setParams({
-      text: step === 3 ? 'ГОТОВО' : 'ДАЛЕЕ',
+      text: step === 3 ? 'ГОТОВО' : 'ПРОДОЛЖИТЬ',
       color: '#ff0055',
       text_color: '#ffffff',
       is_visible: true
@@ -52,25 +52,29 @@ const Register = () => {
   }, [step, formData]);
 
   const handleNext = async () => {
-    if (step < 3) {
-      if (step === 2 && (!formData.name || !formData.age || !formData.gender || !formData.city || !formData.country)) {
-        tg.showAlert('Пожалуйста, заполните все основные поля!');
+    if (step === 1) {
+      if (formData.intentions.length === 0) {
+        tg.showAlert('Выберите хотя бы одно намерение!');
         return;
       }
-      tg.HapticFeedback.impactOccurred('light');
-      setStep(step + 1);
-    } else {
+      tg.HapticFeedback.impactOccurred('medium');
+      setStep(2);
+    } else if (step === 2) {
+      if (!formData.name || !formData.age || !formData.birth_year || !formData.gender || !formData.city) {
+        tg.showAlert('Заполните всю информацию о себе!');
+        return;
+      }
+      tg.HapticFeedback.impactOccurred('medium');
+      setStep(3);
+    } else if (step === 3) {
       if (!formData.avatar) {
-        tg.showAlert('Пожалуйста, загрузите фото!');
+        tg.showAlert('Аватарка обязательна для регистрации!');
         return;
       }
 
       setLoading(true);
       tg.MainButton.showProgress();
       try {
-        const ageInt = parseInt(formData.age);
-        if (isNaN(ageInt)) throw new Error('Возраст должен быть числом');
-
         const { error } = await supabase
           .from('profiles')
           .upsert({
@@ -78,9 +82,11 @@ const Register = () => {
             username: user?.username,
             full_name: formData.name,
             avatar_url: formData.avatar,
-            age: ageInt,
+            age: parseInt(formData.age),
+            birth_year: parseInt(formData.birth_year),
             gender: formData.gender,
             intentions: formData.intentions,
+            interests: formData.interests,
             city: formData.city,
             country: formData.country,
             bio: formData.bio,
@@ -100,15 +106,6 @@ const Register = () => {
     }
   };
 
-  const toggleIntention = (id) => {
-    setFormData(prev => ({
-      ...prev,
-      intentions: prev.intentions.includes(id)
-        ? prev.intentions.filter(i => i !== id)
-        : [...prev.intentions, id]
-    }));
-  };
-
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -117,21 +114,14 @@ const Register = () => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-          if (width > height) {
-            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-          } else {
-            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-          }
-          canvas.width = width;
-          canvas.height = height;
+          const MAX = 1000;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
+          else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+          canvas.width = w; canvas.height = h;
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-          setFormData(prev => ({ ...prev, avatar: compressedBase64 }));
+          ctx.drawImage(img, 0, 0, w, h);
+          setFormData({ ...formData, avatar: canvas.toDataURL('image/jpeg', 0.8) });
         };
         img.src = event.target.result;
       };
@@ -140,117 +130,117 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container fade-in">
-      <div className="register-header">
-        <h1>{step === 1 ? 'Что вы ищете?' : step === 2 ? 'О себе' : 'Последний штрих'}</h1>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(step / 3) * 100}%` }}></div>
-        </div>
-      </div>
-
-      <div className="register-content">
+    <div className="register-page">
+      <div className="onboarding-container">
         {step === 1 && (
-          <div className="intentions-grid">
-            {intentionsList.map(item => (
-              <div 
-                key={item.id} 
-                className={`intention-card ${formData.intentions.includes(item.id) ? 'active' : ''}`}
-                onClick={() => toggleIntention(item.id)}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </div>
-            ))}
+          <div className="onboarding-step fade-in">
+            <h1 className="title-premium">Чего вы хотите?</h1>
+            <p className="subtitle-premium">Выберите свои намерения, чтобы мы подобрали идеальные пары</p>
+            <div className="intentions-grid-premium">
+              {intentionsList.map(item => (
+                <button 
+                  key={item.id} 
+                  className={`intention-btn-premium ${formData.intentions.includes(item.id) ? 'active' : ''}`}
+                  onClick={() => {
+                    const newInt = formData.intentions.includes(item.id)
+                      ? formData.intentions.filter(i => i !== item.id)
+                      : [...formData.intentions, item.id];
+                    setFormData({...formData, intentions: newInt});
+                  }}
+                >
+                  <div className="icon-box">{item.icon}</div>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="basic-info fade-in">
-            <div className="input-group">
-              <label><User size={14} /> Имя</label>
-              <input 
-                type="text" 
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Как вас зовут?"
-              />
-            </div>
-            <div className="input-group">
-              <label>Возраст</label>
-              <input 
-                type="number" 
-                value={formData.age}
-                onChange={(e) => setFormData({...formData, age: e.target.value})}
-                placeholder="Ваш возраст"
-              />
-            </div>
-            <div className="input-group">
-              <label>Пол</label>
-              <div className="gender-selector">
-                <button 
-                  className={formData.gender === 'male' ? 'active' : ''}
-                  onClick={() => setFormData({...formData, gender: 'male'})}
-                >Мужчина</button>
-                <button 
-                  className={formData.gender === 'female' ? 'active' : ''}
-                  onClick={() => setFormData({...formData, gender: 'female'})}
-                >Женщина</button>
-              </div>
-            </div>
-            <div className="input-row" style={{ display: 'flex', gap: '10px' }}>
-              <div className="input-group" style={{ flex: 1 }}>
-                <label><Globe size={14} /> Страна</label>
+          <div className="onboarding-step fade-in">
+            <h1 className="title-premium">О вас</h1>
+            <div className="form-premium">
+              <div className="input-group-premium">
+                <label><User size={16}/> Имя</label>
                 <input 
                   type="text" 
-                  value={formData.country}
-                  onChange={(e) => setFormData({...formData, country: e.target.value})}
-                  placeholder="Россия"
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  placeholder="Иван"
                 />
               </div>
-              <div className="input-group" style={{ flex: 1 }}>
-                <label><MapPin size={14} /> Город</label>
+              <div className="input-row-premium">
+                <div className="input-group-premium">
+                  <label><Calendar size={16}/> Возраст</label>
+                  <input 
+                    type="number" 
+                    value={formData.age} 
+                    onChange={e => setFormData({...formData, age: e.target.value})}
+                    placeholder="25"
+                  />
+                </div>
+                <div className="input-group-premium">
+                  <label>Год рождения</label>
+                  <input 
+                    type="number" 
+                    value={formData.birth_year} 
+                    onChange={e => setFormData({...formData, birth_year: e.target.value})}
+                    placeholder="1999"
+                  />
+                </div>
+              </div>
+              <div className="input-group-premium">
+                <label><MapPin size={16}/> Город</label>
                 <input 
                   type="text" 
-                  value={formData.city}
-                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  value={formData.city} 
+                  onChange={e => setFormData({...formData, city: e.target.value})}
                   placeholder="Москва"
                 />
+              </div>
+              <div className="gender-premium">
+                <button 
+                  className={formData.gender === 'male' ? 'active' : ''} 
+                  onClick={() => setFormData({...formData, gender: 'male'})}
+                >М</button>
+                <button 
+                  className={formData.gender === 'female' ? 'active' : ''} 
+                  onClick={() => setFormData({...formData, gender: 'female'})}
+                >Ж</button>
               </div>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="avatar-upload fade-in">
-            <div className="avatar-preview">
-              {formData.avatar ? (
-                <img src={formData.avatar} alt="Preview" />
-              ) : (
-                <Camera size={48} color="rgba(255,255,255,0.2)" />
-              )}
+          <div className="onboarding-step fade-in">
+            <h1 className="title-premium">Ваше фото</h1>
+            <p className="subtitle-premium">Без фото пользоваться приложением нельзя. Мы за честность!</p>
+            <div className="avatar-section-premium">
+              <div className="avatar-placeholder-premium" onClick={() => document.getElementById('avatarInput').click()}>
+                {formData.avatar ? (
+                  <img src={formData.avatar} alt="Avatar" />
+                ) : (
+                  <Camera size={64} color="rgba(255,255,255,0.2)" />
+                )}
+              </div>
+              <input 
+                id="avatarInput" 
+                type="file" 
+                hidden 
+                accept="image/*" 
+                onChange={handleAvatarChange} 
+              />
+              <button className="upload-btn-premium" onClick={() => document.getElementById('avatarInput').click()}>
+                Загрузить фото
+              </button>
             </div>
-            <label className="upload-btn">
-              Выбрать фото
-              <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: 'none' }} />
-            </label>
-            <div className="input-group" style={{ width: '100%', marginTop: '20px' }}>
+            <div className="bio-section-premium">
               <label>О себе</label>
               <textarea 
-                className="bio-textarea"
-                style={{
-                  width: '100%',
-                  minHeight: '100px',
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--glass-border)',
-                  borderRadius: '18px',
-                  padding: '15px',
-                  color: 'white',
-                  fontFamily: 'inherit',
-                  resize: 'none'
-                }}
-                value={formData.bio}
-                onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                placeholder="Расскажите немного о себе..."
+                value={formData.bio} 
+                onChange={e => setFormData({...formData, bio: e.target.value})}
+                placeholder="Расскажите о своих хобби и интересах..."
               />
             </div>
           </div>
