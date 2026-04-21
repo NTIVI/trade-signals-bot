@@ -12,6 +12,7 @@ const Profile = () => {
     { label: 'Просмотры', value: '0' },
   ]);
   const [dbProfile, setDbProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProfile();
@@ -19,6 +20,7 @@ const Profile = () => {
   }, []);
 
   const fetchProfile = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -26,6 +28,7 @@ const Profile = () => {
       .single();
     
     if (!error && data) setDbProfile(data);
+    setLoading(false);
   };
 
   const fetchStats = async () => {
@@ -46,6 +49,14 @@ const Profile = () => {
       { label: 'Просмотры', value: '0' },
     ]);
   };
+
+  if (loading) {
+    return (
+      <div className="profile-container loading-state">
+        <div className="loader"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-container fade-in">

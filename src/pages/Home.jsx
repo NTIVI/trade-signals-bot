@@ -6,12 +6,6 @@ import { useTelegram } from '../hooks/useTelegram';
 import MatchOverlay from '../components/MatchOverlay';
 import './Home.css';
 
-const DUMMY_USERS = [
-  { id: 1, name: 'Анна', age: 22, intentions: ['свидания', 'дружба'], photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500' },
-  { id: 2, name: 'Марк', age: 25, intentions: ['серьёзные отношения'], photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500' },
-  { id: 3, name: 'Елена', age: 24, intentions: ['свидания'], photo: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500' },
-  { id: 4, name: 'Алекс', age: 28, intentions: ['общение'], photo: 'https://images.unsplash.com/photo-1492562080023-ab3dbdf5bb3d?w=500' },
-];
 
 const Home = ({ onChat }) => {
   const { user } = useTelegram();
@@ -88,6 +82,15 @@ const Home = ({ onChat }) => {
 
   const currentUser = currentIndex !== -1 ? users[currentIndex] : null;
 
+  if (loading) {
+    return (
+      <div className="home-container loading-state">
+        <div className="loader"></div>
+        <p>Ищем людей для вас...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="home-container">
       <div className="card-stack">
@@ -112,18 +115,22 @@ const Home = ({ onChat }) => {
               }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
-              <img src={currentUser.avatar_url} alt={currentUser.full_name} className="card-image" />
-              <div className="card-info">
-                <div className="card-header">
-                  <h2>{currentUser.full_name}, {currentUser.age}</h2>
-                  <button className="info-btn"><Info size={20} /></button>
-                </div>
-                <div className="intentions-tags">
-                  {currentUser.intentions.map(tag => (
-                    <span key={tag} className="tag">{tag}</span>
-                  ))}
-                </div>
-              </div>
+              {currentUser && (
+                <>
+                  <img src={currentUser.avatar_url} alt={currentUser.full_name} className="card-image" />
+                  <div className="card-info">
+                    <div className="card-header">
+                      <h2>{currentUser.full_name}, {currentUser.age}</h2>
+                      <button className="info-btn"><Info size={20} /></button>
+                    </div>
+                    <div className="intentions-tags">
+                      {currentUser.intentions?.map(tag => (
+                        <span key={tag} className="tag">{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </motion.div>
           ) : (
             <div className="empty-state">

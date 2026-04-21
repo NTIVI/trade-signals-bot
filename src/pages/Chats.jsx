@@ -46,6 +46,14 @@ const Chats = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="chats-container loading-state">
+        <div className="loader"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="chats-container fade-in">
       <div className="chats-header">

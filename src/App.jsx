@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import { useTelegram } from './hooks/useTelegram';
@@ -15,28 +15,51 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [isChecking, setIsChecking] = useState(true);
+
   useEffect(() => {
     tg?.ready();
     onExpand();
 
     const checkRegistration = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setIsChecking(false);
+        return;
+      }
       
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
 
-      if (!data && location.pathname !== '/register') {
-        navigate('/register');
-      } else if (data && location.pathname === '/register') {
-        navigate('/');
+        if (error && error.code !== 'PGRST116') {
+          console.error('Registration check error:', error);
+        }
+
+        if (!data && location.pathname !== '/register') {
+          navigate('/register');
+        } else if (data && location.pathname === '/register') {
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Check failed:', err);
+      } finally {
+        setIsChecking(false);
       }
     };
 
     checkRegistration();
   }, [tg, onExpand, navigate, location.pathname, user?.id]);
+
+  if (isChecking) {
+    return (
+      <div className="loading-state">
+        <div className="loader"></div>
+      </div>
+    );
+  }
 
   const navItems = [
     { id: 'home', path: '/', label: 'Главная', icon: '🔥' },
