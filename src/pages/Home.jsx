@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, X, Info } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';

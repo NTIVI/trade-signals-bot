@@ -19,10 +19,10 @@ const MatchOverlay = ({ user, onClose, onChat }) => {
           animate={{ y: 0, scale: 1 }}
           transition={{ type: 'spring', damping: 12 }}
         >
-          It's a Match!
+          Это Мэтч!
         </motion.h1>
         
-        <p>You and {user.name} have liked each other.</p>
+        <p>Вы и {user.name} понравились друг другу.</p>
 
         <div className="match-avatars">
           <div className="avatar-left">
@@ -36,10 +36,10 @@ const MatchOverlay = ({ user, onClose, onChat }) => {
         <div className="match-actions">
           <button className="send-msg-btn" onClick={onChat}>
             <MessageCircle size={20} />
-            Send a Message
+            Отправить сообщение
           </button>
           <button className="keep-swiping-btn" onClick={onClose}>
-            Keep Swiping
+            Продолжить поиск
           </button>
         </div>
 

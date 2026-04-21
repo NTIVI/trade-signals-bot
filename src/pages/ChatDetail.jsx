@@ -1,3 +1,5 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Send, Image, Smile } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';

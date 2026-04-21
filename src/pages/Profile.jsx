@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';
 import { Settings, Edit2, Shield, HelpCircle } from 'lucide-react';
