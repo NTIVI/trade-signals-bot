@@ -72,6 +72,9 @@ const Profile = () => {
               <div className="intentions-tags-premium">
                 {dbProfile.intentions?.map(t => <span key={t} className="tag-premium">{t}</span>)}
               </div>
+              <div className="interests-tags-premium">
+                {dbProfile.interests?.map(t => <span key={t} className="interest-tag-mini">{t}</span>)}
+              </div>
               <p className="card-bio-snippet">{dbProfile.bio}</p>
             </div>
           </div>
@@ -127,6 +130,10 @@ const Profile = () => {
           <div className="profile-info-premium">
             <h1 className="profile-name-large">{dbProfile.full_name}, {dbProfile.age}</h1>
             <p className="profile-city-large"><MapPin size={16} /> {dbProfile.city}</p>
+            <div className="profile-tags-row">
+              {dbProfile.intentions?.map(t => <span key={t} className="tag-premium">{t}</span>)}
+              {dbProfile.interests?.map(t => <span key={t} className="interest-tag-mini">{t}</span>)}
+            </div>
             <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>
               <Edit2 size={16} /> Редактировать профиль
             </button>

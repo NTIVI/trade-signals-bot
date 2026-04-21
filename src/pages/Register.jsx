@@ -32,9 +32,22 @@ const Register = () => {
     { id: 'casual', label: 'Свободные отношения', icon: <Heart size={24} strokeDasharray="4 4" /> },
   ];
 
+  const interestsList = [
+    { id: 'music', label: 'Музыка' },
+    { id: 'travel', label: 'Путешествия' },
+    { id: 'sport', label: 'Спорт' },
+    { id: 'movies', label: 'Кино' },
+    { id: 'art', label: 'Искусство' },
+    { id: 'gaming', label: 'Игры' },
+    { id: 'cooking', label: 'Кулинария' },
+    { id: 'reading', label: 'Чтение' },
+    { id: 'tech', label: 'Технологии' },
+    { id: 'nature', label: 'Природа' },
+  ];
+
   useEffect(() => {
     tg.MainButton.setParams({
-      text: step === 3 ? 'ГОТОВО' : 'ПРОДОЛЖИТЬ',
+      text: step === 4 ? 'ГОТОВО' : 'ПРОДОЛЖИТЬ',
       color: '#ff0055',
       text_color: '#ffffff',
       is_visible: true
@@ -67,6 +80,13 @@ const Register = () => {
       tg.HapticFeedback.impactOccurred('medium');
       setStep(3);
     } else if (step === 3) {
+      if (formData.interests.length === 0) {
+        tg.showAlert('Выберите хотя бы одно увлечение!');
+        return;
+      }
+      tg.HapticFeedback.impactOccurred('medium');
+      setStep(4);
+    } else if (step === 4) {
       if (!formData.avatar) {
         tg.showAlert('Аватарка обязательна для регистрации!');
         return;
@@ -213,6 +233,29 @@ const Register = () => {
         )}
 
         {step === 3 && (
+          <div className="onboarding-step fade-in">
+            <h1 className="title-premium">Интересы</h1>
+            <p className="subtitle-premium">Выберите то, что вам по душе</p>
+            <div className="interests-grid-premium">
+              {interestsList.map(item => (
+                <button 
+                  key={item.id} 
+                  className={`interest-tag-premium ${formData.interests.includes(item.id) ? 'active' : ''}`}
+                  onClick={() => {
+                    const newInt = formData.interests.includes(item.id)
+                      ? formData.interests.filter(i => i !== item.id)
+                      : [...formData.interests, item.id];
+                    setFormData({...formData, interests: newInt});
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
           <div className="onboarding-step fade-in">
             <h1 className="title-premium">Ваше фото</h1>
             <p className="subtitle-premium">Без фото пользоваться приложением нельзя. Мы за честность!</p>
