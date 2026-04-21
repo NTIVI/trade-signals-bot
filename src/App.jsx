@@ -11,7 +11,7 @@ import Register from './pages/Register';
 import ChatDetail from './pages/ChatDetail';
 
 function App() {
-  const { tg, onExpand } = useTelegram();
+  const { tg, onExpand, user } = useTelegram();
   const navigate = useNavigate();
   const location = useLocation();
 
