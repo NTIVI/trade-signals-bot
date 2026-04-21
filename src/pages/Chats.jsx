@@ -7,14 +7,14 @@ import './Chats.css';
 const Chats = () => {
   const navigate = useNavigate();
   const { user } = useTelegram();
-  const [matches, setMatches] = useState([]);
+  const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMatches();
-  }, []);
+    if (user?.id) fetchChats();
+  }, [user?.id]);
 
-  const fetchMatches = async () => {
+  const fetchChats = async () => {
     try {
       const { data, error } = await supabase
         .from('matches')
@@ -27,70 +27,53 @@ const Chats = () => {
 
       if (error) throw error;
 
-      const formattedMatches = data.map(m => {
-        const otherUser = m.user_1.id === user.id ? m.user_2 : m.user_1;
+      // In a real app, we'd also fetch the last message for each match.
+      // For now, let's just list the people.
+      const formatted = data.map(m => {
+        const other = m.user_1.id === user.id ? m.user_2 : m.user_1;
         return {
           id: m.id,
-          name: otherUser.full_name,
-          avatar: otherUser.avatar_url,
-          lastMessage: 'Начните общение!',
+          name: other.full_name,
+          avatar: other.avatar_url,
+          lastMsg: 'Напишите что-нибудь...',
           time: 'Сейчас'
         };
       });
 
-      setMatches(formattedMatches);
-    } catch (error) {
-      console.error('Error fetching matches:', error);
+      setChats(formatted);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="chats-container loading-state">
-        <div className="loader"></div>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading-state"><div className="loader" /></div>;
 
   return (
-    <div className="chats-container fade-in">
-      <div className="chats-header">
-        <h1>Сообщения</h1>
+    <div className="chats-page fade-in">
+      <div className="page-header">
+        <h1>Чаты</h1>
       </div>
       
-      <div className="matches-section">
-        <h3>Новые пары</h3>
-        <div className="matches-scroll-container">
-          {matches.map(match => (
-            <div key={match.id} className="match-item new">
-              <div className="match-avatar-ring">
-                <img src={match.avatar} alt={match.name} />
-              </div>
-              <span>{match.name}</span>
-            </div>
-          ))}
-          {matches.length === 0 && <p className="no-matches">Пока нет новых пар</p>}
-        </div>
-      </div>
-
       <div className="chats-list">
-        {matches.map(chat => (
-          <div key={chat.id} className="chat-item" onClick={() => navigate(`/chats/${chat.id}`)}>
-            <img src={chat.avatar} alt={chat.name} className="chat-avatar" />
+        {chats.length > 0 ? chats.map(chat => (
+          <div key={chat.id} className="chat-item" onClick={() => navigate(`/chat/${chat.id}`)}>
+            <img src={chat.avatar} className="chat-avatar" alt={chat.name} />
             <div className="chat-info">
               <div className="chat-row">
                 <span className="chat-name">{chat.name}</span>
                 <span className="chat-time">{chat.time}</span>
               </div>
-              <div className="chat-row">
-                <span className="chat-last-msg">{chat.lastMessage}</span>
-                {chat.unread > 0 && <span className="unread-badge">{chat.unread}</span>}
-              </div>
+              <p className="chat-last-msg">{chat.lastMsg}</p>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="empty-chats">
+            <p>У вас пока нет активных чатов</p>
+            <button className="btn-premium" onClick={() => navigate('/')} style={{ marginTop: 20 }}>Найти пару</button>
+          </div>
+        )}
       </div>
     </div>
   );

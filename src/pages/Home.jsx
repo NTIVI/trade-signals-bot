@@ -1,116 +1,111 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, X, Info, MapPin } from 'lucide-react';
+import { X, Heart, MapPin, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';
 import MatchOverlay from '../components/MatchOverlay';
 import './Home.css';
 
-const Home = ({ onChat }) => {
+const Home = () => {
   const { tg, user } = useTelegram();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [showMatch, setShowMatch] = useState(false);
   const [matchedUser, setMatchedUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  
+  const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (user?.id) fetchUsers();
+  }, [user?.id]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Get my profile to know my intentions
+      // 1. Get my profile to know my gender and intentions
       const { data: myProfile } = await supabase
         .from('profiles')
-        .select('intentions')
-        .eq('id', user?.id)
+        .select('*')
+        .eq('id', user.id)
         .single();
 
-      const myIntentions = myProfile?.intentions || [];
+      if (!myProfile) {
+        navigate('/register');
+        return;
+      }
 
-      // Fetch users excluding self
+      // 2. Fetch potential matches: opposite gender
+      const oppositeGender = myProfile.gender === 'male' ? 'female' : 'male';
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .neq('id', user?.id)
-        .limit(40);
+        .neq('id', user.id)
+        .eq('gender', oppositeGender);
 
       if (error) throw error;
 
-      // Sort users: priority to those with shared intentions
-      const sortedUsers = (data || []).sort((a, b) => {
-        const sharedA = a.intentions?.filter(i => myIntentions.includes(i)).length || 0;
-        const sharedB = b.intentions?.filter(i => myIntentions.includes(i)).length || 0;
+      // 3. Filter and Sort
+      // Priority to shared intentions
+      const sorted = (data || []).sort((a, b) => {
+        const sharedA = a.intentions?.filter(i => myProfile.intentions.includes(i)).length || 0;
+        const sharedB = b.intentions?.filter(i => myProfile.intentions.includes(i)).length || 0;
         return sharedB - sharedA;
       });
 
-      setUsers(sortedUsers);
-    } catch (error) {
-      console.error('Error fetching users:', error);
+      setUsers(sorted);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSwipe = async (direction) => {
-    const targetUser = users[currentIndex];
+    const target = users[currentIndex];
+    if (!target) return;
+
     tg.HapticFeedback.impactOccurred('medium');
-    
+
     if (direction === 'right') {
-      try {
-        // Check if they liked me back
-        const { data: existingLike } = await supabase
-          .from('likes')
-          .select('*')
-          .eq('from_user', targetUser.id)
-          .eq('to_user', user.id)
+      // Check for mutual like
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('*')
+        .eq('from_user', target.id)
+        .eq('to_user', user.id)
+        .single();
+
+      // Save like
+      await supabase.from('likes').upsert({ from_user: user.id, to_user: target.id });
+
+      if (existingLike) {
+        // MATCH!
+        const { data: matchData } = await supabase
+          .from('matches')
+          .upsert({ user_1: user.id, user_2: target.id })
+          .select()
           .single();
-
-        // Save my like
-        await supabase
-          .from('likes')
-          .upsert({ from_user: user.id, to_user: targetUser.id });
-
-        if (existingLike) {
-          // It's a match!
-          const { data: matchData } = await supabase
-            .from('matches')
-            .upsert({ user_1: user.id, user_2: targetUser.id })
-            .select()
-            .single();
-
-          setMatchedUser(targetUser);
-          setShowMatch(true);
           
-          // The user requested that chat opens after match. 
-          // We show the overlay first, but the overlay "Send message" will go to the chat.
-        }
-      } catch (e) {
-        console.error('Match error:', e);
+        setMatchedUser({...target, matchId: matchData.id});
+        setShowMatch(true);
       }
     }
 
     setCurrentIndex(prev => prev + 1);
+    setPhotoIndex(0);
   };
 
-  const currentUser = currentIndex < users.length ? users[currentIndex] : null;
+  const currentUser = users[currentIndex];
 
-  if (loading) {
-    return (
-      <div className="home-container loading-state">
-        <div className="loader"></div>
-        <p>Ищем идеальные пары...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="loading-state"><div className="loader" /></div>;
 
   return (
-    <div className="home-container">
-      <div className="card-stack">
+    <div className="home-page">
+      <div className="swipe-container">
         <AnimatePresence>
           {currentUser ? (
             <motion.div
@@ -129,71 +124,78 @@ const Home = ({ onChat }) => {
                 opacity: 0, 
                 rotate: currentIndex % 2 === 0 ? 20 : -20 
               }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
             >
-              <img src={currentUser.avatar_url} alt={currentUser.full_name} className="card-image" />
-              
-              <div className="card-overlay-gradient" />
-
-              <div className="card-content-premium">
-                <div className="card-main-info">
-                  <div className="name-age-row">
-                    <h2>{currentUser.full_name}, {currentUser.age}</h2>
-                    <div className="verified-badge">✓</div>
-                  </div>
-                  <div className="location-row">
-                    <MapPin size={14} />
-                    <span>{currentUser.city || 'Не указан'}</span>
-                  </div>
-                </div>
-
-                <div className="intentions-tags-premium">
-                  {currentUser.intentions?.slice(0, 3).map(tag => (
-                    <span key={tag} className="tag-premium">{tag}</span>
+              <div className="card-images-container">
+                <img 
+                  src={currentUser.photos[photoIndex]} 
+                  className="card-image" 
+                  alt={currentUser.full_name} 
+                  onClick={() => navigate(`/user/${currentUser.id}`)}
+                />
+                
+                <div className="photo-dots">
+                  {currentUser.photos.map((_, i) => (
+                    <div key={i} className={`photo-dot ${i === photoIndex ? 'active' : ''}`} />
                   ))}
                 </div>
-                
-                {currentUser.bio && (
-                  <p className="card-bio-snippet">{currentUser.bio}</p>
-                )}
+
+                <div 
+                  className="photo-tap-area photo-tap-left" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPhotoIndex(prev => Math.max(0, prev - 1));
+                  }} 
+                />
+                <div 
+                  className="photo-tap-area photo-tap-right" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPhotoIndex(prev => Math.min(currentUser.photos.length - 1, prev + 1));
+                  }} 
+                />
+              </div>
+
+              <div className="card-info">
+                <h2 className="card-title">{currentUser.full_name}, {currentUser.age}</h2>
+                <div className="card-subtitle">
+                  <MapPin size={16} /> {currentUser.city}
+                </div>
+                <div className="card-tags">
+                  {currentUser.interests.slice(0, 3).map(tag => (
+                    <span key={tag} className="card-tag">{tag}</span>
+                  ))}
+                  {currentUser.interests.length > 3 && <span className="card-tag">+{currentUser.interests.length - 3}</span>}
+                </div>
               </div>
             </motion.div>
           ) : (
             <div className="empty-state fade-in">
-              <div className="empty-icon">☕</div>
-              <h2>Люди закончились</h2>
-              <p>Попробуйте зайти позже или изменить свои предпочтения</p>
-              <button className="reload-btn" onClick={() => setCurrentIndex(0)}>Начать заново</button>
+              <h1>Люди закончились</h1>
+              <p>Заходите позже!</p>
+              <button className="btn-premium" onClick={() => setCurrentIndex(0)}>Сначала</button>
             </div>
           )}
         </AnimatePresence>
       </div>
 
       {currentUser && (
-        <div className="action-buttons-premium">
-          <button className="action-btn skip glass" onClick={() => handleSwipe('left')}>
+        <div className="home-actions">
+          <button className="action-btn dislike" onClick={() => handleSwipe('left')}>
             <X size={32} />
           </button>
-          <button className="action-btn like glass" onClick={() => handleSwipe('right')}>
+          <button className="action-btn like" onClick={() => handleSwipe('right')}>
             <Heart size={32} fill="white" />
           </button>
         </div>
       )}
 
-      <AnimatePresence>
-        {showMatch && (
-          <MatchOverlay 
-            user={matchedUser} 
-            onClose={() => setShowMatch(false)} 
-            onChat={() => {
-              // Get the match ID if we want to go straight to chat
-              // For now, redirect to chats list or a generic chat detail
-              navigate('/chats');
-              setShowMatch(false);
-            }} 
-          />
-        )}
-      </AnimatePresence>
+      {showMatch && (
+        <MatchOverlay 
+          user={matchedUser} 
+          onClose={() => setShowMatch(false)} 
+          onChat={() => navigate(`/chat/${matchedUser.matchId}`)}
+        />
+      )}
     </div>
   );
 };

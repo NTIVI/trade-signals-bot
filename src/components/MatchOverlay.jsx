@@ -1,11 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageCircle, X } from 'lucide-react';
 import './MatchOverlay.css';
 
 const MatchOverlay = ({ user, onClose, onChat }) => {
-  if (!user) return null;
-
   return (
     <motion.div 
       className="match-overlay"
@@ -14,37 +11,25 @@ const MatchOverlay = ({ user, onClose, onChat }) => {
       exit={{ opacity: 0 }}
     >
       <div className="match-content">
-        <motion.h1
-          initial={{ y: -50, scale: 0.5 }}
-          animate={{ y: 0, scale: 1 }}
-          transition={{ type: 'spring', damping: 12 }}
+        <motion.h1 
+          initial={{ scale: 0.5, y: 50 }}
+          animate={{ scale: 1, y: 0 }}
+          className="match-title"
         >
-          Это Мэтч!
+          ЭТО МАТЧ!
         </motion.h1>
+        <p className="match-subtitle">Вы понравились друг другу с {user.full_name}</p>
         
-        <p>Вы и {user.full_name} понравились друг другу.</p>
         <div className="match-avatars">
-          <div className="avatar-left">
-            <img src={user.avatar_url} alt={user.full_name} />
-          </div>
-          <div className="avatar-right">
-            <div className="heart-icon">❤️</div>
+          <div className="match-avatar-circle">
+            <img src={user.avatar_url} alt="" />
           </div>
         </div>
 
-        <div className="match-actions">
-          <button className="send-msg-btn" onClick={onChat}>
-            <MessageCircle size={20} />
-            Отправить сообщение
-          </button>
-          <button className="keep-swiping-btn" onClick={onClose}>
-            Продолжить поиск
-          </button>
+        <div className="match-buttons">
+          <button className="btn-premium" onClick={onChat}>Написать сообщение</button>
+          <button className="btn-skip" onClick={onClose}>Продолжить свайпать</button>
         </div>
-
-        <button className="close-overlay" onClick={onClose}>
-          <X size={24} />
-        </button>
       </div>
     </motion.div>
   );

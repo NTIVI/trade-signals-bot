@@ -9,6 +9,8 @@ import Chats from './pages/Chats';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
 import ChatDetail from './pages/ChatDetail';
+import UserProfile from './pages/UserProfile';
+import Matches from './pages/Matches';
 
 function App() {
   const { tg, onExpand, user } = useTelegram();
@@ -22,19 +24,13 @@ function App() {
     onExpand();
 
     const checkRegistration = async () => {
-      // Fast timeout for snappier loading
-      const timeout = setTimeout(() => {
+      if (!user?.id) {
         setIsChecking(false);
-      }, 1200);
-
-      if (!user?.id || !supabase.supabaseUrl || supabase.supabaseUrl.includes('placeholder')) {
-        setIsChecking(false);
-        clearTimeout(timeout);
         return;
       }
       
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', user.id)
@@ -42,62 +38,58 @@ function App() {
 
         if (!data && location.pathname !== '/register') {
           navigate('/register');
-        } else if (data && location.pathname === '/register') {
-          navigate('/');
         }
       } catch (err) {
         console.error('Check failed:', err);
       } finally {
         setIsChecking(false);
-        clearTimeout(timeout);
       }
     };
 
     checkRegistration();
-  }, [tg, onExpand, navigate, location.pathname, user?.id]);
+  }, [user?.id]);
 
   if (isChecking) {
     return (
       <div className="loading-state">
         <div className="loader"></div>
-        <p style={{ marginTop: '10px', fontSize: '14px', opacity: 0.7 }}>Загрузка профиля...</p>
+        <p>Загрузка...</p>
       </div>
     );
   }
 
-  const navItems = [
-    { id: 'home', path: '/', label: 'Главная', icon: '🔥' },
-    { id: 'chats', path: '/chats', label: 'Чаты', icon: '💬' },
-    { id: 'profile', path: '/profile', label: 'Профиль', icon: '👤' },
-  ];
-
-  const showNav = ['/', '/chats', '/profile'].includes(location.pathname);
+  const showNav = ['/', '/chats', '/matches', '/profile'].includes(location.pathname);
 
   return (
     <div className="app-container">
       <Routes>
-        <Route path="/" element={<Home onChat={() => navigate('/chats/1')} />} />
+        <Route path="/" element={<Home />} />
         <Route path="/chats" element={<Chats />} />
-        <Route path="/chats/:id" element={<ChatDetail />} />
+        <Route path="/chat/:id" element={<ChatDetail />} />
+        <Route path="/matches" element={<Matches />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/user/:id" element={<UserProfile />} />
       </Routes>
 
       {showNav && (
         <nav className="bottom-nav">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-              onClick={() => {
-                tg.HapticFeedback.impactOccurred('light');
-                navigate(item.path);
-              }}
-            >
-              <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
-            </button>
-          ))}
+          <button className={`nav-item ${location.pathname === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>
+            <span className="nav-icon">🔥</span>
+            <span className="nav-label">Главная</span>
+          </button>
+          <button className={`nav-item ${location.pathname === '/chats' ? 'active' : ''}`} onClick={() => navigate('/chats')}>
+            <span className="nav-icon">💬</span>
+            <span className="nav-label">Чаты</span>
+          </button>
+          <button className={`nav-item ${location.pathname === '/matches' ? 'active' : ''}`} onClick={() => navigate('/matches')}>
+            <span className="nav-icon">💖</span>
+            <span className="nav-label">Матчи</span>
+          </button>
+          <button className={`nav-item ${location.pathname === '/profile' ? 'active' : ''}`} onClick={() => navigate('/profile')}>
+            <span className="nav-icon">👤</span>
+            <span className="nav-label">Профиль</span>
+          </button>
         </nav>
       )}
     </div>

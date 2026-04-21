@@ -1,17 +1,12 @@
-.home-container {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+.home-page {
+  height: calc(100vh - 85px);
   padding: 16px;
-  padding-bottom: 110px;
+  position: relative;
 }
 
-.card-stack {
-  flex: 1;
+.swipe-container {
+  height: 100%;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .swipe-card {
@@ -20,9 +15,14 @@
   height: 100%;
   border-radius: 40px;
   overflow: hidden;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-  background: var(--bg-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-p);
   touch-action: none;
+}
+
+.card-images-container {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
 }
 
 .card-image {
@@ -31,150 +31,106 @@
   object-fit: cover;
 }
 
-.card-overlay-gradient {
+.photo-dots {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to top, 
-    rgba(0,0,0,0.9) 0%, 
-    rgba(0,0,0,0.4) 30%, 
-    transparent 60%,
-    rgba(0,0,0,0.2) 100%
-  );
-}
-
-.card-content-premium {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 32px 24px;
-  color: white;
-}
-
-.name-age-row {
+  top: 15px;
+  left: 0; right: 0;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 6px;
+  z-index: 10;
+}
+
+.photo-dot {
+  height: 4px;
+  flex: 1;
+  max-width: 40px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+.photo-dot.active {
+  background: white;
+}
+
+.card-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 40px 24px;
+  background: var(--grad-dark);
+  color: white;
+  pointer-events: none;
+}
+
+.card-title {
+  font-size: 32px;
+  font-weight: 800;
   margin-bottom: 4px;
 }
 
-.name-age-row h2 {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -1px;
-}
-
-.verified-badge {
-  background: #00d4ff;
-  color: white;
-  font-size: 10px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.location-row {
+.card-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  margin-bottom: 16px;
 }
 
-.intentions-tags-premium {
+.card-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 12px;
 }
 
-.tag-premium {
-  background: rgba(255, 255, 255, 0.15);
+.card-tag {
+  background: rgba(255,255,255,0.15);
   backdrop-filter: blur(10px);
   padding: 6px 14px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.card-bio-snippet {
-  font-size: 14px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.8);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.action-buttons-premium {
+/* Action Buttons */
+.home-actions {
+  position: absolute;
+  bottom: 30px;
+  left: 0; right: 0;
   display: flex;
   justify-content: center;
   gap: 24px;
-  margin-top: 24px;
+  z-index: 50;
 }
 
 .action-btn {
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.action-btn.skip {
+  border: none;
   color: white;
-  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
 }
 
-.action-btn.like {
-  background: var(--accent-gradient);
-  color: white;
-  box-shadow: 0 10px 20px rgba(255, 0, 85, 0.3);
+.action-btn.dislike { background: #333; }
+.action-btn.like { background: var(--grad-premium); }
+
+.action-btn:active { transform: scale(0.85); }
+
+/* Swipe Helpers */
+.photo-tap-area {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 5;
 }
 
-.action-btn:active {
-  transform: scale(0.85);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-}
-
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 24px;
-}
-
-.empty-state h2 {
-  font-size: 24px;
-  margin-bottom: 12px;
-}
-
-.empty-state p {
-  color: var(--text-dim);
-  margin-bottom: 32px;
-}
-
-.reload-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: white;
-  padding: 16px 32px;
-  border-radius: 20px;
-  font-weight: 700;
-}
+.photo-tap-left { left: 0; }
+.photo-tap-right { right: 0; }

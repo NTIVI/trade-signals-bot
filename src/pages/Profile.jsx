@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTelegram } from '../hooks/useTelegram';
-import { Settings, Edit2, Shield, HelpCircle, MapPin, Check, X, Eye } from 'lucide-react';
-import './Profile.css';
+import { Settings, Edit2, MapPin, Check, X, Eye, Camera, Plus } from 'lucide-react';
+import './UserProfile.css'; // Reuse profile styles
 
 const Profile = () => {
   const { tg, user } = useTelegram();
@@ -10,7 +10,6 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
-  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -39,123 +38,93 @@ const Profile = () => {
         full_name: editData.full_name,
         age: parseInt(editData.age),
         city: editData.city,
-        bio: editData.bio
+        bio: editData.bio,
+        interests: editData.interests,
+        intentions: editData.intentions,
+        avatar_url: editData.avatar_url,
+        photos: editData.photos
       })
       .eq('id', user.id);
 
     if (!error) {
       setDbProfile(editData);
       setIsEditing(false);
-      tg.showAlert('Профиль успешно обновлен!');
+      tg.showAlert('Профиль обновлен!');
     }
     setLoading(false);
   };
 
-  if (loading && !dbProfile) {
-    return <div className="loading-state"><div className="loader"></div></div>;
-  }
-
-  if (showPreview) {
-    return (
-      <div className="profile-preview-overlay fade-in">
-        <button className="close-preview" onClick={() => setShowPreview(false)}><X size={24}/></button>
-        <div className="preview-card-container">
-          <div className="swipe-card" style={{ position: 'relative' }}>
-            <img src={dbProfile.avatar_url} className="card-image" alt="Preview" />
-            <div className="card-overlay-gradient" />
-            <div className="card-content-premium">
-              <div className="name-age-row">
-                <h2>{dbProfile.full_name}, {dbProfile.age}</h2>
-                <div className="verified-badge">✓</div>
-              </div>
-              <div className="location-row"><MapPin size={14} /><span>{dbProfile.city}</span></div>
-              <div className="intentions-tags-premium">
-                {dbProfile.intentions?.map(t => <span key={t} className="tag-premium">{t}</span>)}
-              </div>
-              <div className="interests-tags-premium">
-                {dbProfile.interests?.map(t => <span key={t} className="interest-tag-mini">{t}</span>)}
-              </div>
-              <p className="card-bio-snippet">{dbProfile.bio}</p>
-            </div>
-          </div>
-        </div>
-        <p className="preview-hint">Так вашу анкету видят другие пользователи</p>
-      </div>
-    );
-  }
+  if (loading && !dbProfile) return <div className="loading-state"><div className="loader" /></div>;
 
   return (
-    <div className="profile-page fade-in">
-      <div className="profile-header-premium">
-        <div className="avatar-wrapper-premium">
-          <img src={dbProfile.avatar_url} alt="Profile" className="profile-avatar-large" />
-          <button className="preview-btn" onClick={() => setShowPreview(true)}>
-            <Eye size={20} />
-          </button>
-        </div>
-        
+    <div className="user-profile-page fade-in">
+      <div className="profile-photos-slider">
+        {dbProfile.photos?.map((photo, i) => (
+          <div key={i} className="profile-slide">
+            <img src={photo} alt="" />
+          </div>
+        ))}
+      </div>
+
+      <div className="profile-details">
         {isEditing ? (
-          <div className="edit-form-premium">
-            <input 
-              type="text" 
-              value={editData.full_name} 
-              onChange={e => setEditData({...editData, full_name: e.target.value})}
-              className="edit-input-name"
-            />
-            <div className="edit-row">
-              <input 
-                type="number" 
-                value={editData.age} 
-                onChange={e => setEditData({...editData, age: e.target.value})}
-                className="edit-input-small"
-              />
-              <input 
-                type="text" 
-                value={editData.city} 
-                onChange={e => setEditData({...editData, city: e.target.value})}
-                className="edit-input-city"
-              />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="input-group">
+              <label>Имя</label>
+              <input value={editData.full_name} onChange={e => setEditData({...editData, full_name: e.target.value})} />
             </div>
-            <textarea 
-              value={editData.bio} 
-              onChange={e => setEditData({...editData, bio: e.target.value})}
-              className="edit-input-bio"
-            />
-            <div className="edit-actions">
-              <button className="save-btn" onClick={handleSave}><Check size={20} /> Сохранить</button>
-              <button className="cancel-btn" onClick={() => setIsEditing(false)}><X size={20} /> Отмена</button>
+            <div className="input-group">
+              <label>Возраст</label>
+              <input type="number" value={editData.age} onChange={e => setEditData({...editData, age: e.target.value})} />
+            </div>
+            <div className="input-group">
+              <label>Город</label>
+              <input value={editData.city} onChange={e => setEditData({...editData, city: e.target.value})} />
+            </div>
+            <div className="input-group">
+              <label>О себе</label>
+              <textarea value={editData.bio} onChange={e => setEditData({...editData, bio: e.target.value})} />
+            </div>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn-premium" onClick={handleSave}>Сохранить</button>
+              <button className="btn-premium" style={{ background: '#333' }} onClick={() => setIsEditing(false)}>Отмена</button>
             </div>
           </div>
         ) : (
-          <div className="profile-info-premium">
-            <h1 className="profile-name-large">{dbProfile.full_name}, {dbProfile.age}</h1>
-            <p className="profile-city-large"><MapPin size={16} /> {dbProfile.city}</p>
-            <div className="profile-tags-row">
-              {dbProfile.intentions?.map(t => <span key={t} className="tag-premium">{t}</span>)}
-              {dbProfile.interests?.map(t => <span key={t} className="interest-tag-mini">{t}</span>)}
+          <>
+            <h1 className="profile-name-xl">{dbProfile.full_name}, {dbProfile.age}</h1>
+            <p className="profile-city-xl"><MapPin size={18} /> {dbProfile.city}</p>
+            
+            <div className="profile-stats">
+              <div className="stat-card">
+                <div className="stat-value">{dbProfile.likes_count || 0}</div>
+                <div className="stat-label">Лайков</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{dbProfile.chats_count || 0}</div>
+                <div className="stat-label">Чатов</div>
+              </div>
             </div>
-            <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>
-              <Edit2 size={16} /> Редактировать профиль
-            </button>
-          </div>
-        )}
-      </div>
 
-      <div className="profile-menu-premium">
-        <div className="menu-group">
-          <div className="menu-item-premium">
-            <Shield size={20} />
-            <span>Приватность и безопасность</span>
-          </div>
-          <div className="menu-item-premium">
-            <Settings size={20} />
-            <span>Настройки аккаунта</span>
-          </div>
-          <div className="menu-item-premium">
-            <HelpCircle size={20} />
-            <span>Служба поддержки</span>
-          </div>
-        </div>
+            <button className="btn-premium" style={{ background: 'var(--bg-card)', marginBottom: 24 }} onClick={() => setIsEditing(true)}>
+              <Edit2 size={16} style={{ marginRight: 8 }} /> Редактировать
+            </button>
+
+            <div className="profile-section">
+              <h3 className="section-title">О себе</h3>
+              <p className="profile-bio">{dbProfile.bio || 'Нет описания'}</p>
+            </div>
+
+            <div className="profile-section">
+              <h3 className="section-title">Интересы</h3>
+              <div className="profile-interests">
+                {dbProfile.interests?.map(tag => (
+                  <span key={tag} className="interest-badge">{tag}</span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

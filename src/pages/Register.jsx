@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
-import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe, Calendar, Hash } from 'lucide-react';
+import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe, Calendar, Hash, Plus, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './Register.css';
 
@@ -10,56 +10,43 @@ const Register = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: user?.first_name || '',
-    age: '',
-    birth_year: '',
     gender: '',
+    age: '',
+    city: '',
+    bio: '',
     intentions: [],
     interests: [],
-    avatar: user?.photo_url || null,
-    city: '',
-    country: '',
-    bio: '',
+    mainPhoto: null,
+    extraPhotos: [null, null], // Exactly 2 required extras
   });
 
   const intentionsList = [
-    { id: 'serious', label: 'Серьёзные отношения', icon: <Heart size={24} /> },
-    { id: 'dating', label: 'Свидания', icon: <Star size={24} /> },
-    { id: 'friendship', label: 'Дружба', icon: <User size={24} /> },
-    { id: 'chat', label: 'Просто общение', icon: <MessageCircle size={24} /> },
-    { id: 'adult', label: '18+ Знакомства', icon: <Hash size={24} /> },
-    { id: 'casual', label: 'Свободные отношения', icon: <Heart size={24} strokeDasharray="4 4" /> },
+    { id: 'friendship', label: 'Дружба', icon: '🤝' },
+    { id: 'chat', label: 'Общение', icon: '💬' },
+    { id: 'dating', label: 'Свидания', icon: '✨' },
+    { id: 'serious', label: 'Серьёзные отношения', icon: '❤️' },
   ];
 
   const interestsList = [
-    { id: 'music', label: 'Музыка' },
-    { id: 'travel', label: 'Путешествия' },
-    { id: 'sport', label: 'Спорт' },
-    { id: 'movies', label: 'Кино' },
-    { id: 'art', label: 'Искусство' },
-    { id: 'gaming', label: 'Игры' },
-    { id: 'cooking', label: 'Кулинария' },
-    { id: 'reading', label: 'Чтение' },
-    { id: 'tech', label: 'Технологии' },
-    { id: 'nature', label: 'Природа' },
+    'Музыка', 'Кино', 'Путешествия', 'Спорт', 'Искусство', 
+    'Игры', 'Кулинария', 'Чтение', 'Технологии', 'Природа',
+    'Танцы', 'Фотография', 'Мода', 'Авто', 'Бизнес'
   ];
 
   useEffect(() => {
     tg.MainButton.setParams({
-      text: step === 4 ? 'ГОТОВО' : 'ПРОДОЛЖИТЬ',
-      color: '#ff0055',
-      text_color: '#ffffff',
+      text: step === 4 ? 'ЗАВЕРШИТЬ' : 'ПРОДОЛЖИТЬ',
+      color: '#ff2d55',
       is_visible: true
     });
 
-    const handleMainButtonClick = () => {
-      handleNext();
-    };
-
-    tg.onEvent('mainButtonClicked', handleMainButtonClick);
+    const handleMainButton = () => handleNext();
+    tg.onEvent('mainButtonClicked', handleMainButton);
     return () => {
-      tg.offEvent('mainButtonClicked', handleMainButtonClick);
+      tg.offEvent('mainButtonClicked', handleMainButton);
       tg.MainButton.hide();
     };
   }, [step, formData]);
@@ -67,226 +54,207 @@ const Register = () => {
   const handleNext = async () => {
     if (step === 1) {
       if (formData.intentions.length === 0) {
-        tg.showAlert('Выберите хотя бы одно намерение!');
+        tg.showAlert('Выберите хотя бы одно намерение');
         return;
       }
-      tg.HapticFeedback.impactOccurred('medium');
       setStep(2);
     } else if (step === 2) {
-      if (!formData.name || !formData.age || !formData.birth_year || !formData.gender || !formData.city) {
-        tg.showAlert('Заполните всю информацию о себе!');
+      if (!formData.name || !formData.gender || !formData.age || !formData.city) {
+        tg.showAlert('Заполните все обязательные поля');
         return;
       }
-      tg.HapticFeedback.impactOccurred('medium');
       setStep(3);
     } else if (step === 3) {
-      if (formData.interests.length === 0) {
-        tg.showAlert('Выберите хотя бы одно увлечение!');
+      if (formData.interests.length < 3) {
+        tg.showAlert('Выберите хотя бы 3 интереса');
         return;
       }
-      tg.HapticFeedback.impactOccurred('medium');
       setStep(4);
     } else if (step === 4) {
-      if (!formData.avatar) {
-        tg.showAlert('Аватарка обязательна для регистрации!');
+      const extraCount = formData.extraPhotos.filter(p => p !== null).length;
+      if (!formData.mainPhoto || extraCount < 2) {
+        tg.showAlert('Загрузите главную аватарку и минимум 2 доп. фото');
         return;
       }
-
-      setLoading(true);
-      tg.MainButton.showProgress();
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user?.id,
-            username: user?.username,
-            full_name: formData.name,
-            avatar_url: formData.avatar,
-            age: parseInt(formData.age),
-            birth_year: parseInt(formData.birth_year),
-            gender: formData.gender,
-            intentions: formData.intentions,
-            interests: formData.interests,
-            city: formData.city,
-            country: formData.country,
-            bio: formData.bio,
-          });
-
-        if (error) throw error;
-        tg.HapticFeedback.notificationOccurred('success');
-        localStorage.setItem('registered', 'true');
-        navigate('/');
-      } catch (error) {
-        tg.HapticFeedback.notificationOccurred('error');
-        tg.showAlert('Ошибка: ' + error.message);
-      } finally {
-        setLoading(false);
-        tg.MainButton.hideProgress();
-      }
+      saveProfile();
     }
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX = 1000;
-          let w = img.width, h = img.height;
-          if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
-          else { if (h > MAX) { w *= MAX/h; h = MAX; } }
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          setFormData({ ...formData, avatar: canvas.toDataURL('image/jpeg', 0.8) });
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
+  const saveProfile = async () => {
+    setLoading(true);
+    tg.MainButton.showProgress();
+    
+    try {
+      const allPhotos = [formData.mainPhoto, ...formData.extraPhotos.filter(p => p !== null)];
+      
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          username: user.username,
+          full_name: formData.name,
+          gender: formData.gender,
+          age: parseInt(formData.age),
+          city: formData.city,
+          bio: formData.bio,
+          intentions: formData.intentions,
+          interests: formData.interests,
+          avatar_url: formData.mainPhoto,
+          photos: allPhotos,
+        });
+
+      if (error) throw error;
+      
+      tg.HapticFeedback.notificationOccurred('success');
+      navigate('/');
+    } catch (err) {
+      tg.showAlert('Ошибка сохранения: ' + err.message);
+    } finally {
+      setLoading(false);
+      tg.MainButton.hideProgress();
     }
+  };
+
+  const handlePhotoUpload = (e, index = -1) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (index === -1) {
+        setFormData({ ...formData, mainPhoto: event.target.result });
+      } else {
+        const newExtras = [...formData.extraPhotos];
+        newExtras[index] = event.target.result;
+        setFormData({ ...formData, extraPhotos: newExtras });
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
     <div className="register-page">
-      <div className="onboarding-container">
+      <div className="onboarding-step fade-in">
         {step === 1 && (
-          <div className="onboarding-step fade-in">
-            <h1 className="title-premium">Чего вы хотите?</h1>
-            <p className="subtitle-premium">Выберите свои намерения, чтобы мы подобрали идеальные пары</p>
-            <div className="intentions-grid-premium">
+          <>
+            <h1 className="step-title">Что вы ищете?</h1>
+            <p className="step-subtitle">Можно выбрать несколько вариантов</p>
+            <div className="intentions-grid">
               {intentionsList.map(item => (
                 <button 
-                  key={item.id} 
-                  className={`intention-btn-premium ${formData.intentions.includes(item.id) ? 'active' : ''}`}
+                  key={item.id}
+                  className={`intention-card ${formData.intentions.includes(item.id) ? 'active' : ''}`}
                   onClick={() => {
-                    const newInt = formData.intentions.includes(item.id)
+                    const next = formData.intentions.includes(item.id)
                       ? formData.intentions.filter(i => i !== item.id)
                       : [...formData.intentions, item.id];
-                    setFormData({...formData, intentions: newInt});
+                    setFormData({ ...formData, intentions: next });
                   }}
                 >
-                  <div className="icon-box">{item.icon}</div>
-                  <span>{item.label}</span>
+                  <span className="intention-icon">{item.icon}</span>
+                  <span className="intention-label">{item.label}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </>
         )}
 
         {step === 2 && (
-          <div className="onboarding-step fade-in">
-            <h1 className="title-premium">О вас</h1>
-            <div className="form-premium">
-              <div className="input-group-premium">
-                <label><User size={16}/> Имя</label>
-                <input 
-                  type="text" 
-                  value={formData.name} 
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                  placeholder="Иван"
-                />
-              </div>
-              <div className="input-row-premium">
-                <div className="input-group-premium">
-                  <label><Calendar size={16}/> Возраст</label>
-                  <input 
-                    type="number" 
-                    value={formData.age} 
-                    onChange={e => setFormData({...formData, age: e.target.value})}
-                    placeholder="25"
-                  />
-                </div>
-                <div className="input-group-premium">
-                  <label>Год рождения</label>
-                  <input 
-                    type="number" 
-                    value={formData.birth_year} 
-                    onChange={e => setFormData({...formData, birth_year: e.target.value})}
-                    placeholder="1999"
-                  />
-                </div>
-              </div>
-              <div className="input-group-premium">
-                <label><MapPin size={16}/> Город</label>
-                <input 
-                  type="text" 
-                  value={formData.city} 
-                  onChange={e => setFormData({...formData, city: e.target.value})}
-                  placeholder="Москва"
-                />
-              </div>
-              <div className="gender-premium">
-                <button 
-                  className={formData.gender === 'male' ? 'active' : ''} 
-                  onClick={() => setFormData({...formData, gender: 'male'})}
-                >М</button>
-                <button 
-                  className={formData.gender === 'female' ? 'active' : ''} 
-                  onClick={() => setFormData({...formData, gender: 'female'})}
-                >Ж</button>
-              </div>
+          <>
+            <h1 className="step-title">О себе</h1>
+            <div className="gender-selector">
+              <button 
+                className={`gender-btn ${formData.gender === 'male' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, gender: 'male' })}
+              >Мужчина</button>
+              <button 
+                className={`gender-btn ${formData.gender === 'female' ? 'active' : ''}`}
+                onClick={() => setFormData({ ...formData, gender: 'female' })}
+              >Девушка</button>
             </div>
-          </div>
+            <div className="input-group">
+              <label>Имя</label>
+              <input 
+                type="text" 
+                value={formData.name} 
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div className="input-group">
+              <label>Возраст</label>
+              <input 
+                type="number" 
+                value={formData.age} 
+                onChange={e => setFormData({ ...formData, age: e.target.value })}
+              />
+            </div>
+            <div className="input-group">
+              <label>Город</label>
+              <input 
+                type="text" 
+                value={formData.city} 
+                onChange={e => setFormData({ ...formData, city: e.target.value })}
+              />
+            </div>
+            <div className="input-group">
+              <label>Коротко о себе</label>
+              <textarea 
+                value={formData.bio} 
+                onChange={e => setFormData({ ...formData, bio: e.target.value })}
+              />
+            </div>
+          </>
         )}
 
         {step === 3 && (
-          <div className="onboarding-step fade-in">
-            <h1 className="title-premium">Интересы</h1>
-            <p className="subtitle-premium">Выберите то, что вам по душе</p>
-            <div className="interests-grid-premium">
-              {interestsList.map(item => (
+          <>
+            <h1 className="step-title">Интересы</h1>
+            <p className="step-subtitle">Выберите минимум 3 интереса</p>
+            <div className="interests-grid">
+              {interestsList.map(tag => (
                 <button 
-                  key={item.id} 
-                  className={`interest-tag-premium ${formData.interests.includes(item.id) ? 'active' : ''}`}
+                  key={tag}
+                  className={`interest-tag ${formData.interests.includes(tag) ? 'active' : ''}`}
                   onClick={() => {
-                    const newInt = formData.interests.includes(item.id)
-                      ? formData.interests.filter(i => i !== item.id)
-                      : [...formData.interests, item.id];
-                    setFormData({...formData, interests: newInt});
+                    const next = formData.interests.includes(tag)
+                      ? formData.interests.filter(t => t !== tag)
+                      : [...formData.interests, tag];
+                    setFormData({ ...formData, interests: next });
                   }}
                 >
-                  {item.label}
+                  {tag}
                 </button>
               ))}
             </div>
-          </div>
+          </>
         )}
 
         {step === 4 && (
-          <div className="onboarding-step fade-in">
-            <h1 className="title-premium">Ваше фото</h1>
-            <p className="subtitle-premium">Без фото пользоваться приложением нельзя. Мы за честность!</p>
-            <div className="avatar-section-premium">
-              <div className="avatar-placeholder-premium" onClick={() => document.getElementById('avatarInput').click()}>
-                {formData.avatar ? (
-                  <img src={formData.avatar} alt="Avatar" />
+          <>
+            <h1 className="step-title">Фотографии</h1>
+            <p className="step-subtitle">Главная аватарка + 2 доп. фото</p>
+            <div className="photos-grid">
+              <div className="main-photo-upload" onClick={() => document.getElementById('mainPhoto').click()}>
+                {formData.mainPhoto ? (
+                  <img src={formData.mainPhoto} className="photo-preview" />
                 ) : (
-                  <Camera size={64} color="rgba(255,255,255,0.2)" />
+                  <div className="upload-placeholder"><Camera size={48} /></div>
                 )}
+                <input id="mainPhoto" type="file" hidden onChange={e => handlePhotoUpload(e)} />
               </div>
-              <input 
-                id="avatarInput" 
-                type="file" 
-                hidden 
-                accept="image/*" 
-                onChange={handleAvatarChange} 
-              />
-              <button className="upload-btn-premium" onClick={() => document.getElementById('avatarInput').click()}>
-                Загрузить фото
-              </button>
+              
+              {formData.extraPhotos.map((p, i) => (
+                <div key={i} className="extra-photo-upload" onClick={() => document.getElementById(`extra-${i}`).click()}>
+                  {p ? (
+                    <img src={p} className="photo-preview" />
+                  ) : (
+                    <Plus size={32} />
+                  )}
+                  <input id={`extra-${i}`} type="file" hidden onChange={e => handlePhotoUpload(e, i)} />
+                </div>
+              ))}
             </div>
-            <div className="bio-section-premium">
-              <label>О себе</label>
-              <textarea 
-                value={formData.bio} 
-                onChange={e => setFormData({...formData, bio: e.target.value})}
-                placeholder="Расскажите о своих хобби и интересах..."
-              />
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>

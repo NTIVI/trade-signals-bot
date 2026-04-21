@@ -1,24 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --primary-color: #ff0055;
-  --secondary-color: #7000ff;
-  --accent-color: #00d4ff;
-  --bg-color: #060608;
-  --mesh-gradient: radial-gradient(at 0% 0%, rgba(255, 0, 85, 0.2) 0, transparent 50%),
-                   radial-gradient(at 100% 0%, rgba(112, 0, 255, 0.2) 0, transparent 50%),
-                   radial-gradient(at 100% 100%, rgba(0, 212, 255, 0.15) 0, transparent 50%),
-                   radial-gradient(at 0% 100%, rgba(255, 0, 85, 0.15) 0, transparent 50%);
-  
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(30px);
-  
+  --bg-dark: #000000;
+  --bg-card: #0d0d0f;
+  --primary: #ff2d55; /* Vibrant Pink/Red */
+  --secondary: #5856d6; /* Vibrant Blue/Purple */
+  --accent: #007aff;
   --text-main: #ffffff;
-  --text-dim: rgba(255, 255, 255, 0.5);
-  
-  --shadow-premium: 0 25px 60px rgba(0, 0, 0, 0.8);
-  --accent-gradient: linear-gradient(135deg, #ff0055 0%, #7000ff 100%);
+  --text-dim: #8e8e93;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(20px);
+  --shadow-p: 0 20px 40px rgba(0, 0, 0, 0.6);
+  --grad-premium: linear-gradient(135deg, #ff2d55 0%, #ff375f 100%);
+  --grad-dark: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.95) 100%);
 }
 
 * {
@@ -29,54 +24,125 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
-  background-color: var(--bg-color);
-  background-image: var(--mesh-gradient);
-  background-attachment: fixed;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  background-color: var(--bg-dark);
   color: var(--text-main);
   overflow: hidden;
   height: 100vh;
   width: 100vw;
+  line-height: 1.5;
 }
 
 #root {
   height: 100%;
 }
 
+.app-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Glassmorphism */
 .glass {
-  background: var(--glass-bg);
+  background: var(--glass);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Animations */
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
+/* Bottom Navigation Styles */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 85px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 25px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-top: 1px solid var(--glass-border);
+  z-index: 1000;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  transition: all 0.3s ease;
+}
+
+.nav-item.active {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.nav-icon {
+  font-size: 24px;
+}
+
+.nav-label {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Loading state */
 .loading-state {
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
   gap: 20px;
 }
 
 .loader {
-  width: 50px;
-  height: 50px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--primary-color);
+  width: 45px;
+  height: 45px;
+  border: 4px solid rgba(255, 45, 85, 0.1);
+  border-top: 4px solid var(--primary);
   border-radius: 50%;
-  animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Button Premium */
+.btn-premium {
+  background: var(--grad-premium);
+  color: white;
+  border: none;
+  padding: 18px 32px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 16px;
+  width: 100%;
+  box-shadow: 0 10px 20px rgba(255, 45, 85, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-premium:active {
+  transform: scale(0.96);
+  opacity: 0.9;
 }

@@ -3,15 +3,16 @@ CREATE TABLE profiles (
   id BIGINT PRIMARY KEY, -- Telegram User ID
   username TEXT,
   full_name TEXT,
-  avatar_url TEXT,
+  avatar_url TEXT, -- This will be the "Main Photo"
+  photos TEXT[],    -- Additional photos (at least 2 required)
   age INTEGER,
-  birth_year INTEGER,
-  gender TEXT,
+  gender TEXT,     -- 'male' or 'female'
   intentions TEXT[],
   interests TEXT[],
   city TEXT,
-  country TEXT,
   bio TEXT,
+  likes_count INTEGER DEFAULT 0,
+  chats_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -44,10 +45,49 @@ CREATE TABLE messages (
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
--- Add policies (simplified example)
+-- Policies
 CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile." ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can manage their own profile." ON profiles ALL USING (true); -- Simplified for dev
+CREATE POLICY "Everyone can see matches." ON matches FOR SELECT USING (true);
+CREATE POLICY "Everyone can see/send messages." ON messages ALL USING (true);
+CREATE POLICY "Everyone can like." ON likes ALL USING (true);
+
+-- Function to update stats on like
+CREATE OR REPLACE FUNCTION update_likes_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'INSERT') THEN
+    UPDATE profiles SET likes_count = likes_count + 1 WHERE id = NEW.to_user;
+  ELSIF (TG_OP = 'DELETE') THEN
+    UPDATE profiles SET likes_count = likes_count - 1 WHERE id = OLD.to_user;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_like_added
+AFTER INSERT OR DELETE ON likes
+FOR EACH ROW EXECUTE FUNCTION update_likes_count();
+
+-- Function to update stats on match
+CREATE OR REPLACE FUNCTION update_chats_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'INSERT') THEN
+    UPDATE profiles SET chats_count = chats_count + 1 WHERE id = NEW.user_1;
+    UPDATE profiles SET chats_count = chats_count + 1 WHERE id = NEW.user_2;
+  ELSIF (TG_OP = 'DELETE') THEN
+    UPDATE profiles SET chats_count = chats_count - 1 WHERE id = OLD.user_1;
+    UPDATE profiles SET chats_count = chats_count - 1 WHERE id = OLD.user_2;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_match_added
+AFTER INSERT OR DELETE ON matches
+FOR EACH ROW EXECUTE FUNCTION update_chats_count();
