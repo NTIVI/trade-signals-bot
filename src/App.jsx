@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from './lib/supabase';
 import { useTelegram } from './hooks/useTelegram';
 import './App.css';
 
@@ -18,12 +19,24 @@ function App() {
     tg?.ready();
     onExpand();
 
-    // Simple registration check
-    const isRegistered = localStorage.getItem('registered');
-    if (!isRegistered && location.pathname !== '/register') {
-      navigate('/register');
-    }
-  }, [tg, onExpand, navigate, location.pathname]);
+    const checkRegistration = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (!data && location.pathname !== '/register') {
+        navigate('/register');
+      } else if (data && location.pathname === '/register') {
+        navigate('/');
+      }
+    };
+
+    checkRegistration();
+  }, [tg, onExpand, navigate, location.pathname, user?.id]);
 
   const navItems = [
     { id: 'home', path: '/', label: 'Главная', icon: '🔥' },

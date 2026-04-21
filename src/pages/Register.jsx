@@ -9,6 +9,7 @@ const Register = () => {
   const { tg, user } = useTelegram();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.first_name || '',
     age: '',
@@ -30,6 +31,10 @@ const Register = () => {
 
   const handleNext = async () => {
     if (step < 3) {
+      if (step === 2 && (!formData.name || !formData.age || !formData.gender)) {
+        tg.showAlert('Пожалуйста, заполните все поля!');
+        return;
+      }
       setStep(step + 1);
     } else {
       if (!formData.avatar) {
@@ -37,7 +42,13 @@ const Register = () => {
         return;
       }
 
+      setLoading(true);
       try {
+        const ageInt = parseInt(formData.age);
+        if (isNaN(ageInt)) {
+          throw new Error('Возраст должен быть числом');
+        }
+
         const { error } = await supabase
           .from('profiles')
           .upsert({
@@ -45,7 +56,7 @@ const Register = () => {
             username: user?.username,
             full_name: formData.name,
             avatar_url: formData.avatar,
-            age: parseInt(formData.age),
+            age: ageInt,
             gender: formData.gender,
             intentions: formData.intentions,
           });
@@ -56,7 +67,9 @@ const Register = () => {
         navigate('/');
       } catch (error) {
         console.error('Error saving profile:', error);
-        tg.showAlert('Ошибка при сохранении профиля: ' + error.message);
+        tg.showAlert('Ошибка: ' + (error.message || 'Не удалось сохранить профиль. Возможно, фото слишком большое.'));
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -74,8 +87,36 @@ const Register = () => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, avatar: reader.result }));
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          setFormData(prev => ({ ...prev, avatar: compressedBase64 }));
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     }
@@ -162,8 +203,8 @@ const Register = () => {
         )}
       </div>
 
-      <button className="next-btn" onClick={handleNext}>
-        {step === 3 ? 'Готово' : 'Далее'}
+      <button className={`next-btn ${loading ? 'loading' : ''}`} onClick={handleNext} disabled={loading}>
+        {loading ? 'Загрузка...' : (step === 3 ? 'Готово' : 'Далее')}
       </button>
     </div>
   );

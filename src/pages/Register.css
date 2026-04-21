@@ -174,3 +174,4 @@
   margin-top: 24px;
   box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
 }
+.next-btn.loading { opacity: 0.7; transform: scale(0.98); box-shadow: none; }
