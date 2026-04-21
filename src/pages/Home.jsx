@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MapPin, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getProfile, getPotentialMatches, likeUser } from '../lib/api';
 import { useTelegram } from '../hooks/useTelegram';
 import MatchOverlay from '../components/MatchOverlay';
 import './Home.css';
@@ -26,11 +26,7 @@ const Home = () => {
     setLoading(true);
     try {
       // 1. Get my profile to know my gender and intentions
-      const { data: myProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const myProfile = await getProfile(user.id);
 
       if (!myProfile) {
         navigate('/register');
@@ -38,15 +34,7 @@ const Home = () => {
       }
 
       // 2. Fetch potential matches: opposite gender
-      const oppositeGender = myProfile.gender === 'male' ? 'female' : 'male';
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .neq('id', user.id)
-        .eq('gender', oppositeGender);
-
-      if (error) throw error;
+      const data = await getPotentialMatches(user.id, myProfile.gender);
 
       // 3. Filter and Sort
       // Priority to shared intentions
@@ -71,26 +59,11 @@ const Home = () => {
     tg.HapticFeedback.impactOccurred('medium');
 
     if (direction === 'right') {
-      // Check for mutual like
-      const { data: existingLike } = await supabase
-        .from('likes')
-        .select('*')
-        .eq('from_user', target.id)
-        .eq('to_user', user.id)
-        .single();
+      const result = await likeUser(user.id, target.id);
 
-      // Save like
-      await supabase.from('likes').upsert({ from_user: user.id, to_user: target.id });
-
-      if (existingLike) {
+      if (result.isMatch) {
         // MATCH!
-        const { data: matchData } = await supabase
-          .from('matches')
-          .upsert({ user_1: user.id, user_2: target.id })
-          .select()
-          .single();
-          
-        setMatchedUser({...target, matchId: matchData.id});
+        setMatchedUser({...target, matchId: result.match.id});
         setShowMatch(true);
       }
     }

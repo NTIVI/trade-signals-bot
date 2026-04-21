@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe, Calendar, Hash, Plus, Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { saveProfile } from '../lib/api';
 import './Register.css';
 
 const Register = () => {
@@ -76,20 +76,18 @@ const Register = () => {
         tg.showAlert('Загрузите главную аватарку и минимум 2 доп. фото');
         return;
       }
-      saveProfile();
+      submitProfile();
     }
   };
 
-  const saveProfile = async () => {
+  const submitProfile = async () => {
     setLoading(true);
     tg.MainButton.showProgress();
     
     try {
       const allPhotos = [formData.mainPhoto, ...formData.extraPhotos.filter(p => p !== null)];
       
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
+      await saveProfile({
           id: user.id,
           username: user.username,
           full_name: formData.name,
@@ -101,10 +99,8 @@ const Register = () => {
           interests: formData.interests,
           avatar_url: formData.mainPhoto,
           photos: allPhotos,
-        });
+      });
 
-      if (error) throw error;
-      
       tg.HapticFeedback.notificationOccurred('success');
       navigate('/');
     } catch (err) {

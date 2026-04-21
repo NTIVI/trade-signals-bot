@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getMyMatches } from '../lib/api';
 import { useTelegram } from '../hooks/useTelegram';
 import './Chats.css';
 
@@ -16,25 +16,16 @@ const Chats = () => {
 
   const fetchChats = async () => {
     try {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          user_1 (id, full_name, avatar_url),
-          user_2 (id, full_name, avatar_url)
-        `)
-        .or(`user_1.eq.${user.id},user_2.eq.${user.id}`);
+      const data = await getMyMatches(user.id);
 
-      if (error) throw error;
-
-      // In a real app, we'd also fetch the last message for each match.
-      // For now, let's just list the people.
       const formatted = data.map(m => {
-        const other = m.user_1.id === user.id ? m.user_2 : m.user_1;
+        const other = m.u1_id === user.id ? 
+          { id: m.u2_id, name: m.u2_name, avatar: m.u2_avatar } : 
+          { id: m.u1_id, name: m.u1_name, avatar: m.u1_avatar };
         return {
-          id: m.id,
-          name: other.full_name,
-          avatar: other.avatar_url,
+          id: m.id, // match_id
+          name: other.name,
+          avatar: other.avatar,
           lastMsg: 'Напишите что-нибудь...',
           time: 'Сейчас'
         };

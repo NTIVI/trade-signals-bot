@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from './lib/supabase';
+import { getProfile } from './lib/api';
 import { useTelegram } from './hooks/useTelegram';
 import './App.css';
 
@@ -30,12 +30,7 @@ function App() {
       }
       
       try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single();
-
+        const data = await getProfile(user.id);
         if (!data && location.pathname !== '/register') {
           navigate('/register');
         }

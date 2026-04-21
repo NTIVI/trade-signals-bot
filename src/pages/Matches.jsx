@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { getMyMatches } from '../lib/api';
 import { useTelegram } from '../hooks/useTelegram';
 import { Heart } from 'lucide-react';
 import './Matches.css';
@@ -17,18 +17,12 @@ const Matches = () => {
 
   const fetchMatches = async () => {
     try {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          user_1 (id, full_name, avatar_url),
-          user_2 (id, full_name, avatar_url)
-        `)
-        .or(`user_1.eq.${user.id},user_2.eq.${user.id}`);
+      const data = await getMyMatches(user.id);
 
-      if (error) throw error;
-
-      const formatted = data.map(m => m.user_1.id === user.id ? m.user_2 : m.user_1);
+      const formatted = data.map(m => m.u1_id === user.id ? 
+        { id: m.u2_id, full_name: m.u2_name, avatar_url: m.u2_avatar } : 
+        { id: m.u1_id, full_name: m.u1_name, avatar_url: m.u1_avatar }
+      );
       setMatches(formatted);
     } catch (err) {
       console.error(err);

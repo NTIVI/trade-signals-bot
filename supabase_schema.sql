@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Create profiles table
 CREATE TABLE profiles (
   id BIGINT PRIMARY KEY, -- Telegram User ID
@@ -43,18 +45,7 @@ CREATE TABLE messages (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
--- Enable Row Level Security (RLS)
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-
--- Policies
-CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can manage their own profile." ON profiles ALL USING (true); -- Simplified for dev
-CREATE POLICY "Everyone can see matches." ON matches FOR SELECT USING (true);
-CREATE POLICY "Everyone can see/send messages." ON messages ALL USING (true);
-CREATE POLICY "Everyone can like." ON likes ALL USING (true);
+-- RLS and Policies removed for Neon backend
 
 -- Function to update stats on like
 CREATE OR REPLACE FUNCTION update_likes_count()

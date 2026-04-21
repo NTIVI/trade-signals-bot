@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { getProfile, saveProfile } from '../lib/api';
 import { useTelegram } from '../hooks/useTelegram';
 import { Settings, Edit2, MapPin, Check, X, Eye, Camera, Plus } from 'lucide-react';
 import './UserProfile.css'; // Reuse profile styles
@@ -17,24 +17,24 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user?.id)
-      .single();
-    
-    if (!error && data) {
-      setDbProfile(data);
-      setEditData(data);
+    try {
+      const data = await getProfile(user?.id);
+      
+      if (data) {
+        setDbProfile(data);
+        setEditData(data);
+      }
+    } catch (err) {
+      console.error(err);
     }
     setLoading(false);
   };
 
   const handleSave = async () => {
     setLoading(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({
+    try {
+      const updatedProfile = await saveProfile({
+        id: user.id,
         full_name: editData.full_name,
         age: parseInt(editData.age),
         city: editData.city,
@@ -43,13 +43,14 @@ const Profile = () => {
         intentions: editData.intentions,
         avatar_url: editData.avatar_url,
         photos: editData.photos
-      })
-      .eq('id', user.id);
+      });
 
-    if (!error) {
-      setDbProfile(editData);
+      setDbProfile(updatedProfile);
       setIsEditing(false);
       tg.showAlert('Профиль обновлен!');
+    } catch (err) {
+      console.error(err);
+      tg.showAlert('Ошибка сохранения');
     }
     setLoading(false);
   };

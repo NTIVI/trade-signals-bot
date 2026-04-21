@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Heart, MessageCircle, MapPin } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { getProfile, getStats, likeUser } from '../lib/api';
 import { useTelegram } from '../hooks/useTelegram';
 import './UserProfile.css';
 
@@ -21,29 +21,14 @@ const UserProfile = () => {
     setLoading(true);
     try {
       // 1. Fetch profile
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const data = await getProfile(id);
 
-      if (error) throw error;
+      if (!data) throw new Error('Profile not found');
       setProfile(data);
 
       // 2. Fetch stats
-      // Likes received
-      const { count: likes } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('to_user', id);
-
-      // Matches (chats)
-      const { count: chats } = await supabase
-        .from('matches')
-        .select('*', { count: 'exact', head: true })
-        .or(`user_1.eq.${id},user_2.eq.${id}`);
-
-      setStats({ likes: likes || 0, chats: chats || 0 });
+      const userStats = await getStats(id);
+      setStats(userStats);
     } catch (err) {
       console.error(err);
     } finally {
@@ -54,25 +39,12 @@ const UserProfile = () => {
   const handleLike = async () => {
     tg.HapticFeedback.impactOccurred('medium');
     
-    // Logic for mutual like check (similar to Home.jsx)
-    const { data: existingLike } = await supabase
-      .from('likes')
-      .select('*')
-      .eq('from_user', id)
-      .eq('to_user', me.id)
-      .single();
+    // Logic for mutual like check via API
+    const result = await likeUser(me.id, id);
 
-    await supabase.from('likes').upsert({ from_user: me.id, to_user: id });
-
-    if (existingLike) {
-      const { data: matchData } = await supabase
-        .from('matches')
-        .upsert({ user_1: me.id, user_2: id })
-        .select()
-        .single();
-        
+    if (result.isMatch) {
       tg.showAlert('Это взаимно! Чат открыт.');
-      navigate(`/chat/${matchData.id}`);
+      navigate(`/chat/${result.match.id}`);
     } else {
       tg.showAlert('Лайк отправлен!');
     }
