@@ -6,7 +6,29 @@ const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.r
 
 export const api = axios.create({
   baseURL: API_URL,
+  timeout: 10000, // 10 seconds timeout to prevent infinite hanging
 });
+
+// Logging interceptors for debugging slow requests
+api.interceptors.request.use(config => {
+  config.metadata = { startTime: new Date() };
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => {
+    const duration = new Date() - response.config.metadata.startTime;
+    console.log(`[API] ${response.config.method.toUpperCase()} ${response.config.url} took ${duration}ms`);
+    return response;
+  },
+  (error) => {
+    if (error.config) {
+      const duration = new Date() - error.config.metadata.startTime;
+      console.error(`[API] ${error.config.method.toUpperCase()} ${error.config.url} failed after ${duration}ms:`, error.message);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const socket = io(SOCKET_URL);
 

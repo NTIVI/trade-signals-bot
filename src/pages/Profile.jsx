@@ -11,24 +11,30 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const data = await getProfile(user?.id);
+      const data = await getProfile(user.id);
       
       if (data) {
         setDbProfile(data);
         setEditData(data);
+      } else {
+        // If profile not found, we could show an error or redirect,
+        // but for now we just leave it to not crash.
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchProfile();
+    }
+  }, [user?.id]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -51,11 +57,13 @@ const Profile = () => {
     } catch (err) {
       console.error(err);
       tg.showAlert('Ошибка сохранения');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  if (loading && !dbProfile) return <div className="loading-state"><div className="loader" /></div>;
+  if (loading) return <div className="loading-state"><div className="loader" /></div>;
+  if (!dbProfile) return <div style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Профиль не найден</div>;
 
   return (
     <div className="user-profile-page fade-in">
