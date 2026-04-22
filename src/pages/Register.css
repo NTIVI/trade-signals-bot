@@ -1,60 +1,76 @@
 .register-page {
   height: 100vh;
-  padding: 40px 24px;
+  padding: 50px 24px;
   overflow-y: auto;
+  background-color: var(--bg-dark);
 }
 
 .onboarding-step {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 32px;
+  padding-bottom: 80px; /* Space for the bottom button */
 }
 
 .step-title {
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -1px;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  background: var(--grad-gold); /* Or white */
+  color: white;
+  margin-bottom: -10px;
 }
 
 .step-subtitle {
   color: var(--text-dim);
-  font-size: 16px;
-  margin-top: -20px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 /* Intentions */
 .intentions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 .intention-card {
-  background: var(--bg-card);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 28px;
+  padding: 30px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  transition: all 0.3s ease;
+  gap: 16px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .intention-card.active {
-  background: rgba(255, 45, 85, 0.1);
+  background: rgba(230, 57, 70, 0.08);
   border-color: var(--primary);
-  transform: scale(1.03);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px var(--primary-glow);
 }
 
 .intention-icon {
-  font-size: 28px;
+  font-size: 32px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
 }
 
 .intention-label {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   text-align: center;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.intention-card.active .intention-label {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(230, 57, 70, 0.5);
 }
 
 /* Gender Selector */
@@ -65,48 +81,70 @@
 
 .gender-btn {
   flex: 1;
-  padding: 18px;
-  border-radius: 20px;
-  background: var(--bg-card);
-  border: 1px solid var(--glass-border);
-  color: white;
-  font-weight: 700;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-dim);
+  font-weight: 600;
   font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
 .gender-btn.active {
   background: var(--primary);
   border-color: var(--primary);
+  color: white;
+  box-shadow: 0 10px 25px var(--primary-glow);
 }
 
 /* Inputs */
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .input-group label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
   color: var(--text-dim);
-  padding-left: 4px;
+  padding-left: 6px;
 }
 
 .input-group input, .input-group textarea {
-  background: var(--bg-card);
-  border: 1px solid var(--glass-border);
-  padding: 18px;
-  border-radius: 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 8px;
+  border-radius: 0;
   color: white;
-  font-size: 16px;
+  font-size: 18px;
   outline: none;
   font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus, .input-group textarea:focus {
+  border-bottom-color: var(--primary);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .input-group textarea {
   height: 120px;
   resize: none;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.input-group textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(230, 57, 70, 0.1);
 }
 
 /* Interests */
@@ -117,50 +155,59 @@
 }
 
 .interest-tag {
-  background: var(--bg-card);
-  border: 1px solid var(--glass-border);
-  padding: 12px 20px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 14px 24px;
   border-radius: 50px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: all 0.3s ease;
 }
 
 .interest-tag.active {
   background: var(--primary);
   border-color: var(--primary);
+  color: white;
+  box-shadow: 0 8px 20px var(--primary-glow);
 }
 
 /* Photos Grid */
 .photos-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 12px;
+  gap: 16px;
 }
 
 .main-photo-upload {
   grid-column: span 2;
   aspect-ratio: 4/5;
-  border-radius: 30px;
-  background: var(--bg-card);
-  border: 2px dashed var(--glass-border);
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
+  transition: all 0.3s ease;
+}
+
+.main-photo-upload:active {
+  transform: scale(0.98);
 }
 
 .extra-photo-upload {
   aspect-ratio: 1/1;
-  border-radius: 20px;
-  background: var(--bg-card);
-  border: 2px dashed var(--glass-border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   position: relative;
+  color: var(--text-dim);
 }
 
 .photo-preview {
@@ -169,13 +216,7 @@
   object-fit: cover;
 }
 
-.upload-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 24px;
+.upload-placeholder {
+  color: var(--text-dim);
+  opacity: 0.5;
 }
