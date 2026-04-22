@@ -36,6 +36,9 @@ function App() {
         }
       } catch (err) {
         console.error('Check failed:', err);
+        if (location.pathname !== '/register') {
+          navigate('/register');
+        }
       } finally {
         setIsChecking(false);
       }

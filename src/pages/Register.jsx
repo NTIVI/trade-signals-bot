@@ -20,7 +20,7 @@ const Register = () => {
     intentions: [],
     interests: [],
     mainPhoto: null,
-    extraPhotos: [null, null], // Exactly 2 required extras
+    extraPhotos: [null, null, null], // Exactly 3 required extras
   });
 
   const intentionsList = [
@@ -72,8 +72,8 @@ const Register = () => {
       setStep(4);
     } else if (step === 4) {
       const extraCount = formData.extraPhotos.filter(p => p !== null).length;
-      if (!formData.mainPhoto || extraCount < 2) {
-        tg.showAlert('Загрузите главную аватарку и минимум 2 доп. фото');
+      if (!formData.mainPhoto || extraCount < 3) {
+        tg.showAlert('Загрузите главную аватарку и минимум 3 доп. фото');
         return;
       }
       submitProfile();
@@ -258,7 +258,7 @@ const Register = () => {
         {step === 4 && (
           <>
             <h1 className="step-title">Фотографии</h1>
-            <p className="step-subtitle">Главная аватарка + 2 доп. фото</p>
+            <p className="step-subtitle">Главная аватарка + 3 доп. фото</p>
             <div className="photos-grid">
               <div className="main-photo-upload" onClick={() => document.getElementById('mainPhoto').click()}>
                 {formData.mainPhoto ? (
