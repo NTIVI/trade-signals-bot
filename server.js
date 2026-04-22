@@ -234,7 +234,8 @@ io.on('connection', (socket) => {
 });
 
 // Catch-all route to serve index.html for React Router
-app.get('*', (req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

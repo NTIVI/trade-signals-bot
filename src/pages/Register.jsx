@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTelegram } from '../hooks/useTelegram';
 import { Camera, User, Heart, MessageCircle, Star, MapPin, Globe, Calendar, Hash, Plus, Check } from 'lucide-react';
-import { saveProfile } from '../lib/api';
+import { saveProfile, api } from '../lib/api';
 import './Register.css';
 
 const Register = () => {
@@ -104,7 +104,7 @@ const Register = () => {
       tg.HapticFeedback.notificationOccurred('success');
       navigate('/');
     } catch (err) {
-      tg.showAlert('Ошибка сохранения: ' + err.message);
+      tg.showAlert('Ошибка сохранения: ' + err.message + ' | URL: ' + api.defaults.baseURL);
     } finally {
       setLoading(false);
       tg.MainButton.hideProgress();
