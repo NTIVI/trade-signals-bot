@@ -1,8 +1,18 @@
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-const SOCKET_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : '';
+const getApiUrl = () => {
+  let url = import.meta.env.VITE_API_URL || '/api';
+  if (url.startsWith('http') && !url.endsWith('/api')) {
+    // Remove trailing slash if present before appending /api
+    if (url.endsWith('/')) url = url.slice(0, -1);
+    url += '/api';
+  }
+  return url;
+};
+
+const API_URL = getApiUrl();
+const SOCKET_URL = API_URL.replace('/api', '');
 
 export const api = axios.create({
   baseURL: API_URL,
