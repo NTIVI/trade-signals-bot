@@ -2,12 +2,23 @@ import axios from 'axios';
 import { io } from 'socket.io-client';
 
 const getApiUrl = () => {
-  let url = import.meta.env.VITE_API_URL || '/api';
-  if (url.startsWith('http') && !url.endsWith('/api')) {
-    // Remove trailing slash if present before appending /api
-    if (url.endsWith('/')) url = url.slice(0, -1);
+  let url = import.meta.env.VITE_API_URL;
+  
+  if (!url) {
+    // If no URL is provided, assume it's the same origin
+    console.warn('VITE_API_URL is not set, defaulting to /api');
+    return '/api';
+  }
+
+  // Ensure it doesn't end with a slash
+  if (url.endsWith('/')) url = url.slice(0, -1);
+
+  // If it doesn't end with /api, add it
+  if (!url.endsWith('/api')) {
     url += '/api';
   }
+
+  console.log('API Base URL:', url);
   return url;
 };
 

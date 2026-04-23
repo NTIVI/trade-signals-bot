@@ -11,8 +11,6 @@ import Register from './pages/Register';
 import ChatDetail from './pages/ChatDetail';
 import UserProfile from './pages/UserProfile';
 import Matches from './pages/Matches';
-import Games from './pages/Games';
-import GamePage from './pages/GamePage';
 
 function App() {
   const { tg, onExpand, user } = useTelegram();
@@ -20,7 +18,6 @@ function App() {
   const location = useLocation();
 
   const [isChecking, setIsChecking] = useState(true);
-  const [balance, setBalance] = useState(0);
   const [tgUser, setTgUser] = useState(null);
 
   useEffect(() => {
@@ -37,7 +34,6 @@ function App() {
         const data = await getProfile(user.id);
         if (data) {
           setTgUser(data);
-          setBalance(data.balance || 0);
         }
         if (!data && location.pathname !== '/register') {
           navigate('/register');
@@ -76,23 +72,17 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/register" element={<Register />} />
         <Route path="/user/:id" element={<UserProfile />} />
-        <Route path="/games" element={<Games balance={balance} />} />
-        <Route path="/game/:gameId" element={<GamePage balance={balance} setBalance={setBalance} tgUser={tgUser} setTgUser={setTgUser} />} />
       </Routes>
 
       {showNav && (
         <nav className="bottom-nav">
           <button className={`nav-item ${location.pathname === '/' ? 'active' : ''}`} onClick={() => navigate('/')}>
             <span className="nav-icon">🔥</span>
-            <span className="nav-label">Главная</span>
+            <span className="nav-label">Знакомства</span>
           </button>
           <button className={`nav-item ${location.pathname === '/chats' ? 'active' : ''}`} onClick={() => navigate('/chats')}>
             <span className="nav-icon">💬</span>
             <span className="nav-label">Чаты</span>
-          </button>
-          <button className={`nav-item ${location.pathname === '/games' ? 'active' : ''}`} onClick={() => navigate('/games')}>
-            <span className="nav-icon">🎮</span>
-            <span className="nav-label">Игры</span>
           </button>
           <button className={`nav-item ${location.pathname === '/matches' ? 'active' : ''}`} onClick={() => navigate('/matches')}>
             <span className="nav-icon">💖</span>

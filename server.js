@@ -27,8 +27,17 @@ app.use(express.json({ limit: '50mb' })); // Increased limit for base64 images
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`);
+  });
   next();
+});
+
+// Health check route
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
 // Serve static files from the React frontend app
@@ -65,7 +74,7 @@ app.get('/api/profiles/:id', async (req, res) => {
 });
 
 // Upsert User Profile
-app.post('/api/profiles', async (req, res) => {
+app.post(['/api/profiles', '/api/profiles/'], async (req, res) => {
   const { id, username, full_name, gender, age, city, bio, intentions, interests, avatar_url, photos } = req.body;
   try {
     const query = `
