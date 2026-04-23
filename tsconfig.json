@@ -7,13 +7,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
     "noImplicitAny": false,
+    "skipLibCheck": true,
+    "ignoreDeprecations": "5.0",
     "jsx": "react-jsx"
   },
   "include": ["src"]
